@@ -4,6 +4,8 @@ using ProfilesApi.Domain.Enums;
 
 public class Doctor
 {
+    public Guid Id { get; set; } =  Guid.NewGuid();
+    
     public string? PhotoUrl { get; set; }
 
     public string FirstName { get; set; } = string.Empty;

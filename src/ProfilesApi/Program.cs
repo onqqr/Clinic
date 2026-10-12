@@ -1,4 +1,11 @@
+using ProfilesApi.Infrastructure;
+using ProfilesApi.Application;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
