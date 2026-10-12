@@ -1,8 +1,6 @@
 namespace OfficeApi.Application.DTOs;
 
-using OfficeApi.Domain.Enums;
-
-public class CreateOfficeRequest
+public class UpdateOfficeRequestDto
 {
     public string? PhotoUrl { get; set; }
 

@@ -2,7 +2,7 @@ namespace OfficeApi.Application.DTOs;
 
 using OfficeApi.Domain.Enums;
 
-public class OfficeResponse
+public class OfficeResponseDto
 {
     public Guid Id { get; set; }
 

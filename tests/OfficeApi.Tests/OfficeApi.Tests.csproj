@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OfficeApi.Domain\OfficeApi.Domain.csproj" />
-    <ProjectReference Include="..\OfficeApi.Application\OfficeApi.Application.csproj" />
+    <ProjectReference Include="..\..\src\OfficeApi.Domain\OfficeApi.Domain.csproj" />
+    <ProjectReference Include="..\..\src\OfficeApi.Application\OfficeApi.Application.csproj" />
   </ItemGroup>
 
 </Project>

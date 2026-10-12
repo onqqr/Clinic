@@ -8,7 +8,7 @@ namespace OfficeApi.Infrastructure.Repositories;
 public class OfficeRepository : IOfficeRepository
 {
     private readonly OfficeDbContext _context;
-    
+
     public OfficeRepository(OfficeDbContext context)
     {
         _context = context;
@@ -34,6 +34,12 @@ public class OfficeRepository : IOfficeRepository
     public async Task UpdateAsync(Office office)
     {
         _context.Offices.Update(office);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(Office office)
+    {
+        _context.Offices.Remove(office);
         await _context.SaveChangesAsync();
     }
 }

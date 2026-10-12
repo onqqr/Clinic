@@ -1,12 +1,12 @@
-namespace OfficeApi.Tests.Unit;
-
 using OfficeApi.Domain.Entities;
 using OfficeApi.Domain.Enums;
+
+namespace OfficeApi.Tests.Unit;
 
 public class OfficeTests
 {
     [Fact]
-    public void Address_ShouldIncludeOfficeNumber()
+    public void Address_WithOfficeNumber_IncludesOfficeNumber()
     {
         // Arrange
         var office = new Office
@@ -17,14 +17,16 @@ public class OfficeTests
             OfficeNumber = "5"
         };
         var expectedAddress = "Minsk, Lenina, 10, office 5";
+
         // Act
         var actualAddress = office.Address;
+
         // Assert
         Assert.Equal(expectedAddress, actualAddress);
     }
 
     [Fact]
-    public void Address_ShouldNotIncludeOfficeNumber_WhenItIsMissing()
+    public void Address_WithoutOfficeNumber_ExcludesOfficeNumber()
     {
         // Arrange
         var office = new Office
@@ -34,19 +36,23 @@ public class OfficeTests
             HouseNumber = "10"
         };
         var expectedAddress = "Minsk, Lenina, 10";
+
         // Act
         var actualAddress = office.Address;
+
         // Assert
         Assert.Equal(expectedAddress, actualAddress);
     }
 
     [Fact]
-    public void NewOffice_ShouldHaveActiveStatus()
+    public void NewOffice_Default_HasActiveStatus()
     {
         // Arrange
         var office = new Office();
+
         // Act
         var actualStatus = office.Status;
+
         // Assert
         Assert.Equal(OfficeStatus.Active, actualStatus);
     }
