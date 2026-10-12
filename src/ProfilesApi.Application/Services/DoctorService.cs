@@ -38,6 +38,12 @@ public class DoctorService :  IDoctorService
     public async Task<DoctorResponseDto> CreateAsync(
         CreateDoctorRequestDto request)
     {
+        if (await _repository.EmailExistsAsync(request.Email))
+        {
+            throw new InvalidOperationException(
+                "User with this email already exists.");
+        }
+        
         var doctor = new Doctor
         {
             PhotoUrl = request.PhotoUrl,
@@ -66,6 +72,12 @@ public class DoctorService :  IDoctorService
         if (doctor is null)
         {
             return null;
+        }
+        
+        if (await _repository.EmailExistsAsync(request.Email, id))
+        {
+            throw new InvalidOperationException(
+                "User with this email already exists.");
         }
 
         doctor.PhotoUrl = request.PhotoUrl;

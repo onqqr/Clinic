@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ProfilesApi.Infrastructure.Data;
+using ProfilesApi.Application.Interfaces;
+using ProfilesApi.Infrastructure.Repositories;
 
 public static class DependencyInjection
 {
@@ -18,6 +20,7 @@ public static class DependencyInjection
 
         services.AddDbContext<ProfilesDbContext>(options =>
             options.UseNpgsql(connectionString));
+        services.AddScoped<IDoctorRepository, DoctorRepository>();
 
         return services;
     }
