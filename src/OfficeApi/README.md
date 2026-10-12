@@ -1,73 +1,91 @@
-## Шорт суммари
+## шорт суммари
 
-Веб-приложение для пациентов клиники: регистрация и личный кабинет, 
-запись на приём к врачу или на услугу, просмотр медицинской истории 
-и дополнительных возможностей, связанных с основными сценариями. 
-Проект реализован как набор микросервисов на ASP.NET Core, 
-общающихся между собой асинхронно через RabbitMQ.
+Микросервис офисов клиники.
+CRUD по офисам + смена статуса.
+ASP.NET Core + EF Core + PostgreSQL.
 
+## структура
 
-## Доп Инфа:
+```
+src/
+  OfficeApi/                 <- HTTP слой (вход в приложение)
+  OfficeApi.Application/     <- сценарии, DTO, валидация
+  OfficeApi.Domain/          <- сущности и enums, без зависимостей
+  OfficeApi.Infrastructure/  <- БД, EF, репозитории
+tests/
+  OfficeApi.Tests/           <- юнит-тесты
+```
 
-__DdContext__ - объект EF Core, через который C# работает с базой данных.
-EF Core > переводит LINQ/C# в SQL.
-типа, _dbContext.Offices - дай доступ к таблице Offices.
-DTO - объект, который используется для передачи данных между слоями/API.
+**что за что отвечате** > каждый слой делает своё. Domain ничего не знает про HTTP/БД.
+Application описывает что делать. Infrastructure — как достать из Postgres.
+Api только принимает запрос и отдаёт ответ.
 
-## Отдельно:
+## суммари файлов
 
-Services:
-1. RabiitMQ
-2. MinIO
+__OfficeApi__ — Controllers, Program.cs, DI.
+Принимает HTTP, валидирует через FluentValidation, зовёт сервис, отдаёт JSON/статус-коды.
 
-## Архитектура для каждого микросервиса:
+__Application__ — бизнес-сценарии.
+- `Services/` — Create / Update / ChangeStatus / Delete и т.д.
+- `DTOs/` — что приходит/уходит по API (с суффиксом Dto)
+- `Interfaces/` — контракты сервиса и репозитория
+- `Validators/` — правила валидации запросов
 
-Program.cs > DI > Controllers > Services > Repositories > EF Core > Database
+__Domain__ — ядро.
+- `Entities/` — Office (город, улица, статус...)
+- `Enums/` — OfficeStatus (Active / Inactive)
+Без EF, без ASP.NET. Чистые модели.
 
+__Infrastructure__ — техника.
+- `Data/` — OfficeDbContext (доступ к таблицам)
+- `Repositories/` — реализация IOfficeRepository
+- `Migrations/` — схема БД
 
-                    ┌─────────────────────┐
-                    │    OfficeApi        │
-                    │  ASP.NET / HTTP      │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │  OfficeApi.Application│
-                    │ Services / DTO /     │
-                    │ interfaces           │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   OfficeApi.Domain   │
-                    │ Entities / Enums /   │
-                    │ business rules       │
-                    └─────────────────────┘
-                               ▲
-                               │
-                    ┌──────────┴──────────┐
-                    │ OfficeApi.Infrastructure│
-                    │ EF / PostgreSQL /   │
-                    │ Repository / S3 etc.│
-                    └─────────────────────┘
-## Nuget пакеты:
+__tests__ — проверяем сервис и домен без поднятия всего API.
 
-Microsoft.EntityFrameworkCore - сам EF Core<br>
-Npgsql.EntityFrameworkCore.PostgreSQL - провайдер PostgreSQL<br>
-Microsoft.EntityFrameworkCore.Design - для миграции
+## сборка
 
+`Program.cs` поднимает DI:
+Application (сервисы + валидаторы) + Infrastructure (DbContext + репозиторий).
 
-## Путь для данных:
+Цепочка:
 
-Клиент > Сервер: 
-`GET /api/offices/{id} > Controller > OfficeService > IOfficeRepository > OfficeRepository > OfficeDbContext > PostgreSQL`<br>
-Сервер > Клиент:
-`PostgreSQL > Office > OfficeService > OfficeResponse > JSON > Frontend`<br>
-Если офиса нет:
-`Database > null > Service > null > 404`
+```
+HTTP > Controller > IOfficeService > IOfficeRepository > DbContext > PostgreSQL
+```
 
-## Ответсвтенность
+клиент-сервер:
+`GET /api/offices/{id} > OfficesController > OfficeService > OfficeRepository > OfficeDbContext > PostgreSQL`
 
-Repository - ищет данные.<br>
-Service - выполняет сценарий.<br>
-Controller - занимается HTTP.
+сервер-клиент:
+`PostgreSQL > Office > OfficeService > OfficeResponseDto > JSON`
+
+Нет офиса: `null > 404`
+
+## ответственность
+
+Controller — HTTP (роуты, 200/400/404).<br>
+Service — сценарий (собрать сущность, поменять статус, замапить в DTO).<br>
+Repository — достать/сохранить/удалить в БД.<br>
+DbContext — EF Core мост к PostgreSQL.<br>
+DTO — контракт API, не тащим entity наружу.<br>
+Validator — проверяет тело запроса до сервиса.
+
+## Nuget
+
+Microsoft.EntityFrameworkCore — EF Core<br>
+Npgsql.EntityFrameworkCore.PostgreSQL — Postgres<br>
+Microsoft.EntityFrameworkCore.Design — миграции<br>
+FluentValidation — валидация DTO
+
+## ран
+
+```
+dotnet run --project src/OfficeApi/OfficeApi.csproj --launch-profile http
+```
+
+http://localhost:5059
+
+## доп инфа
+
+Позже: RabbitMQ (события между сервисами), MinIO (фото офисов).
