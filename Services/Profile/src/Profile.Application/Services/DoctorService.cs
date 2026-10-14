@@ -7,10 +7,14 @@ namespace Clinic.Profile.Application.Services;
 public class DoctorService :  IDoctorService
 {
     private readonly IDoctorRepository _repository;
+    private readonly IOfficeSnapshotRepository _officeSnapshots;
 
-    public DoctorService(IDoctorRepository repository)
+    public DoctorService(
+        IDoctorRepository repository,
+        IOfficeSnapshotRepository officeSnapshots)
     {
         _repository = repository;
+        _officeSnapshots = officeSnapshots;
     }
 
     public async Task<List<DoctorResponseDto>> GetAllAsync(
@@ -24,15 +28,19 @@ public class DoctorService :  IDoctorService
             specialization,
             officeId,
             onlyAvailable);
+        
+        var result = new List<DoctorResponseDto>();
+        foreach (var doctor in doctors)
+            result.Add(await MapToDtoAsync(doctor));
 
-        return doctors.Select(MapToDto).ToList();
+        return result;
     }
 
     public async Task<DoctorResponseDto?> GetByIdAsync(Guid id)
     {
         var doctor = await _repository.GetByIdAsync(id);
 
-        return doctor is null ? null : MapToDto(doctor);
+        return doctor is null ? null : await MapToDtoAsync(doctor);
     }
 
     public async Task<DoctorResponseDto> CreateAsync(
@@ -60,7 +68,7 @@ public class DoctorService :  IDoctorService
 
         await _repository.AddAsync(doctor);
 
-        return MapToDto(doctor);
+        return await MapToDtoAsync(doctor);
     }
 
     public async Task<DoctorResponseDto?> UpdateAsync(
@@ -93,7 +101,7 @@ public class DoctorService :  IDoctorService
 
         await _repository.UpdateAsync(doctor);
 
-        return MapToDto(doctor);
+        return await MapToDtoAsync(doctor);
     }
 
     public async Task<bool> DeleteAsync(Guid id)
@@ -110,8 +118,9 @@ public class DoctorService :  IDoctorService
         return true;
     }
 
-    private static DoctorResponseDto MapToDto(Doctor doctor)
+    private async Task<DoctorResponseDto> MapToDtoAsync(Doctor doctor)
     {
+        var office = await _officeSnapshots.GetByIdAsync(doctor.OfficeId);
         return new DoctorResponseDto
         {
             Id = doctor.Id,
@@ -123,6 +132,7 @@ public class DoctorService :  IDoctorService
             Email = doctor.Email,
             Specialization = doctor.Specialization,
             OfficeId = doctor.OfficeId,
+            OfficeAddress = office?.Address,
             CareerStartYear = doctor.CareerStartYear,
             Experience = DateTime.Today.Year - doctor.CareerStartYear + 1,
             Status = doctor.Status

@@ -13,4 +13,6 @@ public interface IPatientRepository
     Task UpdateAsync(Patient patient);
     
     Task DeleteAsync(Patient patient);
+
+    Task<List<Patient>> GetUnlinkedAsync();
 }

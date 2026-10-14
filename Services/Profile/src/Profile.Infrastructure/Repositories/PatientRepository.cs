@@ -56,4 +56,11 @@ public class PatientRepository : IPatientRepository
         _dbContext.Patients.Remove(patient);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task<List<Patient>> GetUnlinkedAsync()
+    {
+        return await  _dbContext.Patients
+            .Where(p => !p.IsLinkedToAccount)
+            .ToListAsync();
+    }
 }

@@ -27,4 +27,6 @@ public class DoctorResponseDto
     public int Experience { get; set; }
     
     public DoctorStatus Status { get; set; }
+    
+    public string? OfficeAddress { get; set; }
 }

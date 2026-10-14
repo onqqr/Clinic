@@ -12,15 +12,18 @@ public class PatientsController : ControllerBase
     private readonly IPatientService _service;
     private readonly IValidator<CreatePatientRequestDto> _createValidator;
     private readonly IValidator<UpdatePatientRequestDto> _updateValidator;
+    private readonly IValidator<RegisterPatientRequestDto> _registerValidator;
 
     public PatientsController(
         IPatientService service,
         IValidator<CreatePatientRequestDto> createValidator,
-        IValidator<UpdatePatientRequestDto> updateValidator)
+        IValidator<UpdatePatientRequestDto> updateValidator,
+        IValidator<RegisterPatientRequestDto> registerValidator)
     {
         _service = service;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
+        _registerValidator = registerValidator;
     }
 
     [HttpGet]
@@ -76,5 +79,36 @@ public class PatientsController : ControllerBase
     {
         var deleted = await _service.DeleteAsync(id);
         return deleted ? NoContent() : NotFound();
+    }
+    
+    [HttpPost("register")]
+    public async Task<ActionResult<PatientRegistrationResultDto>> Register(
+        RegisterPatientRequestDto request)
+    {
+        var validation = await _registerValidator.ValidateAsync(request);
+        if (!validation.IsValid)
+            return BadRequest(validation.Errors);
+
+        var result = await _service.RegisterAsync(request);
+        return Ok(result);
+    }
+
+    [HttpPost("confirm-match")]
+    public async Task<ActionResult<PatientRegistrationResultDto>> ConfirmMatch(
+        ConfirmPatientMatchRequestDto request)
+    {
+        var validation = await _registerValidator.ValidateAsync(request.RegistrationData);
+        if (!validation.IsValid)
+            return BadRequest(validation.Errors);
+
+        try
+        {
+            var result = await _service.ConfirmMatchAsync(request);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
     }
 }
