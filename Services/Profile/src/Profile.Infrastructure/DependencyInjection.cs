@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Clinic.Profile.Infrastructure.Data;
 using Clinic.Profile.Application.Interfaces;
 using Clinic.Profile.Infrastructure.Repositories;
+using Clinic.Profile.Application.Services;
 
 public static class DependencyInjection
 {
@@ -21,6 +22,7 @@ public static class DependencyInjection
         services.AddDbContext<ProfilesDbContext>(options =>
             options.UseNpgsql(connectionString));
         services.AddScoped<IDoctorRepository, DoctorRepository>();
+        services.AddScoped<IPatientRepository, PatientRepository>();
 
         return services;
     }

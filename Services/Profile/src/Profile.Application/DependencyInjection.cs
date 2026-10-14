@@ -12,6 +12,7 @@ public static class DependencyInjection
         this IServiceCollection services)
     {
         services.AddScoped<IDoctorService, DoctorService>();
+        services.AddScoped<IPatientService, PatientService>();
 
         services.AddValidatorsFromAssemblyContaining<CreateDoctorRequestValidator>();
 
