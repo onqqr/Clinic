@@ -13,6 +13,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IDoctorService, DoctorService>();
         services.AddScoped<IPatientService, PatientService>();
+        services.AddScoped<IReceptionistService, ReceptionistService>();
 
         services.AddValidatorsFromAssemblyContaining<CreateDoctorRequestValidator>();
 

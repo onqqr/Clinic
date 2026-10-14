@@ -23,6 +23,7 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString));
         services.AddScoped<IDoctorRepository, DoctorRepository>();
         services.AddScoped<IPatientRepository, PatientRepository>();
+        services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
 
         return services;
     }
