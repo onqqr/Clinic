@@ -1,0 +1,26 @@
+namespace Clinic.Profile.Application.DTOs.Doctors;
+
+using Clinic.Profile.Domain.Enums;
+
+public class CreateDoctorRequestDto
+{
+    public string? PhotoUrl { get; set; }
+    
+    public string FirstName { get; set; } = string.Empty;
+    
+    public string LastName { get; set; } = string.Empty;
+    
+    public string? MiddleName { get; set; }
+    
+    public DateOnly DateOfBirth { get; set; }
+    
+    public string Email { get; set; } = string.Empty;
+    
+    public string Specialization { get; set; } = string.Empty;
+    
+    public Guid OfficeId { get; set; }
+    
+    public int CareerStartYear { get; set; }
+    
+    public DoctorStatus Status { get; set; } = DoctorStatus.AtWork;
+}
