@@ -67,6 +67,25 @@ namespace Clinic.Profile.Infrastructure.Data.Migrations
                     b.ToTable("Doctors");
                 });
 
+            modelBuilder.Entity("Clinic.Profile.Domain.Entities.OfficeSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OfficeSnapshots");
+                });
+
             modelBuilder.Entity("Clinic.Profile.Domain.Entities.Patient", b =>
                 {
                     b.Property<Guid>("Id")

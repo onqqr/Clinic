@@ -15,4 +15,6 @@ public class ProfilesDbContext : DbContext
     public DbSet<Patient> Patients => Set<Patient>();
 
     public DbSet<Receptionist> Receptionists => Set<Receptionist>();
+    
+    public DbSet<OfficeSnapshot> OfficeSnapshots => Set<OfficeSnapshot>();
 }
