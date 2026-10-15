@@ -1,4 +1,5 @@
 using Clinic.Profile.Application.DTOs.Doctors;
+using Clinic.Profile.Application.Events;
 using Clinic.Profile.Application.Interfaces;
 using Clinic.Profile.Domain.Entities;
 
@@ -8,13 +9,16 @@ public class DoctorService :  IDoctorService
 {
     private readonly IDoctorRepository _repository;
     private readonly IOfficeSnapshotRepository _officeSnapshots;
+    private  readonly IEventPublisher _eventPublisher;
 
     public DoctorService(
         IDoctorRepository repository,
-        IOfficeSnapshotRepository officeSnapshots)
+        IOfficeSnapshotRepository officeSnapshots,
+        IEventPublisher eventPublisher)
     {
         _repository = repository;
         _officeSnapshots = officeSnapshots;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<DoctorResponseDto>> GetAllAsync(
@@ -67,6 +71,9 @@ public class DoctorService :  IDoctorService
         };
 
         await _repository.AddAsync(doctor);
+        
+        await _eventPublisher.PublishAsync(
+            new DoctorProfileCreated(doctor.Id, doctor.Email));
 
         return await MapToDtoAsync(doctor);
     }
@@ -137,5 +144,19 @@ public class DoctorService :  IDoctorService
             Experience = DateTime.Today.Year - doctor.CareerStartYear + 1,
             Status = doctor.Status
         };
+    }
+    
+    public async Task<DoctorResponseDto?> ChangeStatusAsync(
+        Guid id,
+        ChangeDoctorStatusRequestDto request)
+    {
+        var doctor = await _repository.GetByIdAsync(id);
+        if (doctor is null)
+            return null;
+
+        doctor.Status = request.Status;
+        await _repository.UpdateAsync(doctor);
+
+        return await MapToDtoAsync(doctor);
     }
 }

@@ -20,4 +20,8 @@ public interface IDoctorService
         UpdateDoctorRequestDto request);
 
     Task<bool> DeleteAsync(Guid id);
+    
+    Task<DoctorResponseDto?> ChangeStatusAsync(
+        Guid id, 
+        ChangeDoctorStatusRequestDto request);
 }

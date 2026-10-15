@@ -1,3 +1,4 @@
+
 namespace Clinic.Profile.Infrastructure;
 
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Clinic.Profile.Infrastructure.Data;
 using Clinic.Profile.Application.Interfaces;
 using Clinic.Profile.Infrastructure.Repositories;
-using Clinic.Profile.Application.Services;
+using Clinic.Profile.Infrastructure.Messaging;
 
 public static class DependencyInjection
 {
@@ -25,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<IPatientRepository, PatientRepository>();
         services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
         services.AddScoped<IOfficeSnapshotRepository, OfficeSnapshotRepository>();
+        services.AddScoped<IEventPublisher, LoggingEventPublisher>();
 
         return services;
     }

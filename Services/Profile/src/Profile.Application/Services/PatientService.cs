@@ -1,4 +1,5 @@
 using Clinic.Profile.Application.DTOs.Patients;
+using Clinic.Profile.Application.Events;
 using Clinic.Profile.Application.Interfaces;
 using Clinic.Profile.Domain.Entities;
 using Clinic.Profile.Domain.Matching;
@@ -8,10 +9,14 @@ namespace Clinic.Profile.Application.Services;
 public class PatientService : IPatientService
 {
     private readonly IPatientRepository _repository;
+    private readonly IEventPublisher _eventPublisher;
 
-    public PatientService(IPatientRepository repository)
+    public PatientService(
+        IPatientRepository repository,  
+        IEventPublisher eventPublisher)
     {
         _repository = repository;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<PatientResponseDto>> GetAllAsync(string? fullName = null)
@@ -68,6 +73,9 @@ public class PatientService : IPatientService
             return false;
 
         await _repository.DeleteAsync(patient);
+        
+        await _eventPublisher.PublishAsync(new PatientProfileDeleted(id));
+        
         return true;
     }
 

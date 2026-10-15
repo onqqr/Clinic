@@ -1,4 +1,5 @@
 using Clinic.Profile.Application.DTOs.Receptionist;
+using Clinic.Profile.Application.Events;
 using Clinic.Profile.Application.Interfaces;
 using Clinic.Profile.Domain.Entities;
 
@@ -7,22 +8,34 @@ namespace Clinic.Profile.Application.Services;
 public class ReceptionistService : IReceptionistService
 {
     private readonly IReceptionistRepository _repository;
+    private readonly IOfficeSnapshotRepository  _officeSnapshot;
+    private readonly IEventPublisher _eventPublisher;
 
-    public ReceptionistService(IReceptionistRepository repository)
+    public ReceptionistService(
+        IReceptionistRepository repository, 
+        IOfficeSnapshotRepository officeSnapshot,
+        IEventPublisher eventPublisher)
     {
         _repository = repository;
+        _officeSnapshot = officeSnapshot;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<ReceptionistResponseDto>> GetAllAsync(string? fullName = null)
     {
         var receptionists = await _repository.GetAllAsync(fullName);
-        return receptionists.Select(MapToDto).ToList();
+        var result = new List<ReceptionistResponseDto>();
+        foreach (var receptionist in receptionists)
+        {
+            result.Add(await MapToDtoAsync(receptionist));
+        }
+        return result;
     }
 
     public async Task<ReceptionistResponseDto?> GetByIdAsync(Guid id)
     {
         var receptionist = await _repository.GetByIdAsync(id);
-        return receptionist is null ? null : MapToDto(receptionist);
+        return receptionist is null ? null : await MapToDtoAsync(receptionist);
     }
 
     public async Task<ReceptionistResponseDto> CreateAsync(
@@ -45,7 +58,11 @@ public class ReceptionistService : IReceptionistService
         };
 
         await _repository.AddAsync(receptionist);
-        return MapToDto(receptionist);
+        
+        await _eventPublisher.PublishAsync(
+            new ReceptionistProfileCreated(receptionist.Id, receptionist.Email));
+        
+        return await MapToDtoAsync(receptionist);
     }
 
     public async Task<ReceptionistResponseDto?> UpdateAsync(
@@ -70,7 +87,7 @@ public class ReceptionistService : IReceptionistService
         receptionist.OfficeId = request.OfficeId;
 
         await _repository.UpdateAsync(receptionist);
-        return MapToDto(receptionist);
+        return await MapToDtoAsync(receptionist);
     }
 
     public async Task<bool> DeleteAsync(Guid id)
@@ -83,14 +100,20 @@ public class ReceptionistService : IReceptionistService
         return true;
     }
 
-    private static ReceptionistResponseDto MapToDto(Receptionist receptionist) => new()
+    private async Task<ReceptionistResponseDto> MapToDtoAsync(Receptionist receptionist)
     {
-        Id = receptionist.Id,
-        PhotoUrl = receptionist.PhotoUrl,
-        FirstName = receptionist.FirstName,
-        LastName = receptionist.LastName,
-        MiddleName = receptionist.MiddleName,
-        Email = receptionist.Email,
-        OfficeId = receptionist.OfficeId
-    };
+        var office = await _officeSnapshot.GetByIdAsync(receptionist.OfficeId);
+
+        return new ReceptionistResponseDto
+        {
+            Id = receptionist.Id,
+            PhotoUrl = receptionist.PhotoUrl,
+            FirstName = receptionist.FirstName,
+            LastName = receptionist.LastName,
+            MiddleName = receptionist.MiddleName,
+            Email = receptionist.Email,
+            OfficeId = receptionist.OfficeId,
+            OfficeAddress = office?.Address
+        };
+    }
 }

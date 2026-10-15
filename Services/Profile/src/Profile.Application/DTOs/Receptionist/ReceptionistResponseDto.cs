@@ -15,4 +15,6 @@ public class ReceptionistResponseDto
     public string Email { get; set; } = string.Empty;
     
     public Guid OfficeId { get; set; }
+    
+    public string? OfficeAddress { get; set; }
 }

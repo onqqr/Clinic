@@ -12,15 +12,18 @@ public class DoctorsController : ControllerBase
     private readonly IDoctorService _service;
     private readonly IValidator<CreateDoctorRequestDto> _createValidator;
     private readonly IValidator<UpdateDoctorRequestDto> _updateValidator;
+    private readonly IValidator<ChangeDoctorStatusRequestDto> _changeStatusValidator;
 
     public DoctorsController(
         IDoctorService service,
         IValidator<CreateDoctorRequestDto> createValidator,
-        IValidator<UpdateDoctorRequestDto> updateValidator)
+        IValidator<UpdateDoctorRequestDto> updateValidator,
+        IValidator<ChangeDoctorStatusRequestDto> changeStatusValidator)
     {
         _service = service;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
+        _changeStatusValidator = changeStatusValidator;
     }
 
     [HttpGet]
@@ -96,5 +99,18 @@ public class DoctorsController : ControllerBase
         var deleted = await _service.DeleteAsync(id);
 
         return deleted ? NoContent() : NotFound();
+    }
+    
+    [HttpPatch("{id:guid}/status")]
+    public async Task<ActionResult<DoctorResponseDto>> ChangeStatus(
+        Guid id,
+        ChangeDoctorStatusRequestDto request)
+    {
+        var validation = await _changeStatusValidator.ValidateAsync(request);
+        if (!validation.IsValid)
+            return BadRequest(validation.Errors);
+
+        var doctor = await _service.ChangeStatusAsync(id, request);
+        return doctor is null ? NotFound() : Ok(doctor);
     }
 }
