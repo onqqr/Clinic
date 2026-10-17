@@ -1,0 +1,40 @@
+using Clinic.Profile.Application.DTOs.Offices;
+using Clinic.Profile.Application.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Clinic.Profile.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class OfficeSnapshotsController : ControllerBase
+{
+    private readonly IOfficeSnapshotService _officeSnapshotService;
+
+    public OfficeSnapshotsController(IOfficeSnapshotService officeSnapshotService)
+    {
+        _officeSnapshotService = officeSnapshotService;
+    }
+
+    // placeholder test (rabbitMQ will come later)
+    [HttpPost]
+    public async Task<ActionResult<OfficeSnapshotResponseDto>> Upsert(
+        UpsertOfficeSnapshotRequestDto request)
+    {
+        var result = await _officeSnapshotService.UpsertAsync(request);
+
+        return Ok(result);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<OfficeSnapshotResponseDto>> GetById(Guid id)
+    {
+        var snapshot = await _officeSnapshotService.GetByIdAsync(id);
+
+        if (snapshot is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(snapshot);
+    }
+}
