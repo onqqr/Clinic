@@ -1,3 +1,4 @@
+using AutoMapper;
 using Clinic.Profile.Application.DTOs.Patients;
 using Clinic.Profile.Application.Enums;
 using Clinic.Profile.Application.Events;
@@ -5,6 +6,7 @@ using Clinic.Profile.Application.Interfaces;
 using Clinic.Profile.Domain.Entities;
 using Clinic.Profile.Domain.Interfaces;
 using Clinic.Profile.Domain.Matching;
+using Clinic.Profile.Domain.Specifications;
 
 namespace Clinic.Profile.Application.Services;
 
@@ -12,20 +14,24 @@ public class PatientService : IPatientService
 {
     private readonly IPatientRepository _patientRepository;
     private readonly IEventPublisher _eventPublisher;
+    private readonly IMapper _mapper;
 
     public PatientService(
         IPatientRepository patientRepository,
-        IEventPublisher eventPublisher)
+        IEventPublisher eventPublisher,
+        IMapper mapper)
     {
         _patientRepository = patientRepository;
         _eventPublisher = eventPublisher;
+        _mapper = mapper;
     }
 
-    public async Task<List<PatientResponseDto>> GetAllAsync(string? fullName = null)
+    public async Task<List<PatientResponseDto>> GetAllAsync(PatientFilterDto filter)
     {
-        var patients = await _patientRepository.GetAllAsync(fullName);
+        var specification = new PatientFilterSpecification(filter.FullName);
+        var patients = await _patientRepository.ListAsync(specification);
 
-        return patients.Select(MapToDto).ToList();
+        return _mapper.Map<List<PatientResponseDto>>(patients);
     }
 
     public async Task<PatientResponseDto?> GetByIdAsync(Guid id)
@@ -37,23 +43,15 @@ public class PatientService : IPatientService
             return null;
         }
 
-        return MapToDto(patient);
+        return _mapper.Map<PatientResponseDto>(patient);
     }
 
     public async Task<PatientResponseDto> CreateAsync(CreatePatientRequestDto request)
     {
-        var patient = new Patient
-        {
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            MiddleName = request.MiddleName,
-            DateOfBirth = request.DateOfBirth,
-            IsLinkedToAccount = false
-        };
-
+        var patient = _mapper.Map<Patient>(request);
         await _patientRepository.AddAsync(patient);
 
-        return MapToDto(patient);
+        return _mapper.Map<PatientResponseDto>(patient);
     }
 
     public async Task<PatientResponseDto?> UpdateAsync(
@@ -67,16 +65,10 @@ public class PatientService : IPatientService
             return null;
         }
 
-        patient.PhotoUrl = request.PhotoUrl;
-        patient.FirstName = request.FirstName;
-        patient.LastName = request.LastName;
-        patient.MiddleName = request.MiddleName;
-        patient.PhoneNumber = request.PhoneNumber;
-        patient.DateOfBirth = request.DateOfBirth;
-
+        _mapper.Map(request, patient);
         await _patientRepository.UpdateAsync(patient);
 
-        return MapToDto(patient);
+        return _mapper.Map<PatientResponseDto>(patient);
     }
 
     public async Task<bool> DeleteAsync(Guid id)
@@ -89,7 +81,6 @@ public class PatientService : IPatientService
         }
 
         await _patientRepository.DeleteAsync(patient);
-
         await _eventPublisher.PublishAsync(new PatientProfileDeleted(id));
 
         return true;
@@ -98,7 +89,8 @@ public class PatientService : IPatientService
     public async Task<PatientRegistrationResultDto> RegisterAsync(
         RegisterPatientRequestDto request)
     {
-        var unlinked = await _patientRepository.GetUnlinkedAsync();
+        var unlinked = await _patientRepository.ListAsync(
+            new UnlinkedPatientsSpecification());
 
         Patient? bestMatch = null;
         var bestScore = 0;
@@ -127,27 +119,17 @@ public class PatientService : IPatientService
             return new PatientRegistrationResultDto
             {
                 Outcome = PatientRegistrationOutcome.MatchFound,
-                MatchedPatient = MapToDto(bestMatch)
+                MatchedPatient = _mapper.Map<PatientResponseDto>(bestMatch)
             };
         }
 
-        var patient = new Patient
-        {
-            PhotoUrl = request.PhotoUrl,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            MiddleName = request.MiddleName,
-            PhoneNumber = request.PhoneNumber,
-            DateOfBirth = request.DateOfBirth,
-            IsLinkedToAccount = true
-        };
-
+        var patient = _mapper.Map<Patient>(request);
         await _patientRepository.AddAsync(patient);
 
         return new PatientRegistrationResultDto
         {
             Outcome = PatientRegistrationOutcome.Created,
-            Patient = MapToDto(patient)
+            Patient = _mapper.Map<PatientResponseDto>(patient)
         };
     }
 
@@ -185,43 +167,17 @@ public class PatientService : IPatientService
             return new PatientRegistrationResultDto
             {
                 Outcome = PatientRegistrationOutcome.Linked,
-                Patient = MapToDto(existing)
+                Patient = _mapper.Map<PatientResponseDto>(existing)
             };
         }
 
-        var data = request.RegistrationData;
-        var patient = new Patient
-        {
-            PhotoUrl = data.PhotoUrl,
-            FirstName = data.FirstName,
-            LastName = data.LastName,
-            MiddleName = data.MiddleName,
-            PhoneNumber = data.PhoneNumber,
-            DateOfBirth = data.DateOfBirth,
-            IsLinkedToAccount = true
-        };
-
+        var patient = _mapper.Map<Patient>(request.RegistrationData);
         await _patientRepository.AddAsync(patient);
 
         return new PatientRegistrationResultDto
         {
             Outcome = PatientRegistrationOutcome.Created,
-            Patient = MapToDto(patient)
-        };
-    }
-
-    private static PatientResponseDto MapToDto(Patient patient)
-    {
-        return new PatientResponseDto
-        {
-            Id = patient.Id,
-            PhotoUrl = patient.PhotoUrl,
-            FirstName = patient.FirstName,
-            LastName = patient.LastName,
-            MiddleName = patient.MiddleName,
-            PhoneNumber = patient.PhoneNumber,
-            DateOfBirth = patient.DateOfBirth,
-            IsLinkedToAccount = patient.IsLinkedToAccount
+            Patient = _mapper.Map<PatientResponseDto>(patient)
         };
     }
 }

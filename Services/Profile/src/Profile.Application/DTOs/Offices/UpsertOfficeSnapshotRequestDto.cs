@@ -1,10 +1,10 @@
 namespace Clinic.Profile.Application.DTOs.Offices;
 
-public class UpsertOfficeSnapshotRequestDto
+public record UpsertOfficeSnapshotRequestDto
 {
-    public Guid Id { get; set; }
-    
-    public string Address { get; set; } = string.Empty;
-    
-    public string Status { get; set; } = "Active";
+    public Guid Id { get; init; }
+
+    public string Address { get; init; } = string.Empty;
+
+    public string Status { get; init; } = "Active";
 }

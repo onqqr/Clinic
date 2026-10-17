@@ -1,16 +1,16 @@
 namespace Clinic.Profile.Application.DTOs.Receptionists;
 
-public class UpdateReceptionistRequestDto
+public record UpdateReceptionistRequestDto
 {
-    public string? PhotoUrl { get; set; }
+    public string? PhotoUrl { get; init; }
 
-    public string FirstName { get; set; } = string.Empty;
+    public string FirstName { get; init; } = string.Empty;
 
-    public string LastName { get; set; } = string.Empty;
+    public string LastName { get; init; } = string.Empty;
 
-    public string? MiddleName { get; set; }
+    public string? MiddleName { get; init; }
 
-    public string Email { get; set; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
 
-    public Guid OfficeId { get; set; }
+    public Guid OfficeId { get; init; }
 }

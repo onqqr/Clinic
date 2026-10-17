@@ -2,31 +2,31 @@ using Clinic.Profile.Domain.Enums;
 
 namespace Clinic.Profile.Application.DTOs.Doctors;
 
-public class DoctorResponseDto
+public record DoctorResponseDto
 {
-    public Guid Id { get; set; }
-    
-    public string? PhotoUrl { get; set; }
-    
-    public string FirstName { get; set; } = string.Empty;
-    
-    public string LastName { get; set; } = string.Empty;
-    
-    public string? MiddleName { get; set; }
-    
-    public DateOnly DateOfBirth { get; set; }
-    
-    public string Email { get; set; } = string.Empty;
-    
-    public string Specialization { get; set; } = string.Empty;
-    
-    public Guid OfficeId { get; set; }
-    
-    public int CareerStartYear { get; set; }
-    
-    public int Experience { get; set; }
-    
-    public DoctorStatus Status { get; set; }
-    
-    public string? OfficeAddress { get; set; }
+    public Guid Id { get; init; }
+
+    public string? PhotoUrl { get; init; }
+
+    public string FirstName { get; init; } = string.Empty;
+
+    public string LastName { get; init; } = string.Empty;
+
+    public string? MiddleName { get; init; }
+
+    public DateOnly DateOfBirth { get; init; }
+
+    public string Email { get; init; } = string.Empty;
+
+    public string Specialization { get; init; } = string.Empty;
+
+    public Guid OfficeId { get; init; }
+
+    public int CareerStartYear { get; init; }
+
+    public int Experience { get; init; }
+
+    public DoctorStatus Status { get; init; }
+
+    public string? OfficeAddress { get; init; }
 }

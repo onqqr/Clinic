@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Clinic.Profile.API.Middleware;
 using Clinic.Profile.Application.Interfaces;
+using Clinic.Profile.Application.Mapping;
 using Clinic.Profile.Application.Services;
 using Clinic.Profile.Application.Validators;
 using Clinic.Profile.Domain.Interfaces;
@@ -19,10 +20,14 @@ builder.Services.AddControllers()
             new JsonStringEnumConverter());
     });
 
-builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+builder.Services.AddAutoMapper(
+    _ => { },
+    typeof(DoctorMappingProfile).Assembly);
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IReceptionistService, ReceptionistService>();
@@ -48,7 +53,12 @@ app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ProfilesDbContext>();
+    await dbContext.Database.MigrateAsync();
 }
 
 app.MapControllers();

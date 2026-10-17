@@ -1,10 +1,10 @@
 namespace Clinic.Profile.Application.DTOs.Patients;
 
-public class ConfirmPatientMatchRequestDto
+public record ConfirmPatientMatchRequestDto
 {
-    public Guid MatchedPatientId { get; set; }
+    public Guid MatchedPatientId { get; init; }
 
-    public bool IsMatchConfirmed { get; set; }
+    public bool IsMatchConfirmed { get; init; }
 
-    public RegisterPatientRequestDto RegistrationData { get; set; } = new();
+    public RegisterPatientRequestDto RegistrationData { get; init; } = new();
 }

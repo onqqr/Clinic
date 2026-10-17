@@ -1,7 +1,8 @@
 using Clinic.Profile.Domain.Entities;
-using Clinic.Profile.Domain.Enums;
 using Clinic.Profile.Domain.Interfaces;
+using Clinic.Profile.Domain.Specifications;
 using Clinic.Profile.Infrastructure.Data;
+using Clinic.Profile.Infrastructure.Specifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clinic.Profile.Infrastructure.Repositories;
@@ -15,42 +16,13 @@ public class DoctorRepository : IDoctorRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<Doctor>> GetAllAsync(
-        string? fullName = null,
-        string? specialization = null,
-        Guid? officeId = null,
-        bool onlyAvailable = false)
+    public async Task<List<Doctor>> ListAsync(ISpecification<Doctor> specification)
     {
-        var query = _dbContext.Doctors.AsNoTracking().AsQueryable();
+        var query = SpecificationEvaluator.GetQuery(
+            _dbContext.Doctors.AsQueryable(),
+            specification);
 
-        if (!string.IsNullOrWhiteSpace(fullName))
-        {
-            var search = fullName.Trim();
-
-            query = query.Where(d =>
-                EF.Functions.ILike(
-                    (d.FirstName + " " + d.LastName + " " +
-                     (d.MiddleName ?? "")).Trim(),
-                    $"%{search}%"));
-        }
-
-        if (!string.IsNullOrWhiteSpace(specialization))
-        {
-            query = query.Where(d =>
-                EF.Functions.ILike(d.Specialization, specialization.Trim()));
-        }
-
-        if (officeId.HasValue)
-        {
-            query = query.Where(d => d.OfficeId == officeId.Value);
-        }
-
-        if (onlyAvailable)
-        {
-            query = query.Where(d => d.Status == DoctorStatus.AtWork);
-        }
-
-        return await query.OrderBy(d => d.LastName).ToListAsync();
+        return await query.ToListAsync();
     }
 
     public Task<Doctor?> GetByIdAsync(Guid id)

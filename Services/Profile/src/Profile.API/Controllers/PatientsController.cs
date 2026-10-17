@@ -28,11 +28,11 @@ public class PatientsController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<List<PatientResponseDto>>> GetAll(
-        [FromQuery] string? fullName)
+        [FromQuery] PatientFilterDto filter)
     {
-        var patients = await _patientService.GetAllAsync(fullName);
+        var patients = await _patientService.GetAllAsync(filter);
 
-        if (!string.IsNullOrWhiteSpace(fullName) && patients.Count == 0)
+        if (!string.IsNullOrWhiteSpace(filter.FullName) && patients.Count == 0)
         {
             return Ok(new { message = "No matches found", items = patients });
         }

@@ -2,25 +2,25 @@ using Clinic.Profile.Domain.Enums;
 
 namespace Clinic.Profile.Application.DTOs.Doctors;
 
-public class CreateDoctorRequestDto
+public record CreateDoctorRequestDto
 {
-    public string? PhotoUrl { get; set; }
+    public string? PhotoUrl { get; init; }
 
-    public string FirstName { get; set; } = string.Empty;
+    public string FirstName { get; init; } = string.Empty;
 
-    public string LastName { get; set; } = string.Empty;
+    public string LastName { get; init; } = string.Empty;
 
-    public string? MiddleName { get; set; }
+    public string? MiddleName { get; init; }
 
-    public DateOnly DateOfBirth { get; set; }
+    public DateOnly DateOfBirth { get; init; }
 
-    public string Email { get; set; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
 
-    public string Specialization { get; set; } = string.Empty;
+    public string Specialization { get; init; } = string.Empty;
 
-    public Guid OfficeId { get; set; }
+    public Guid OfficeId { get; init; }
 
-    public int CareerStartYear { get; set; }
+    public int CareerStartYear { get; init; }
 
-    public DoctorStatus Status { get; set; } = DoctorStatus.AtWork;
+    public DoctorStatus Status { get; init; } = DoctorStatus.AtWork;
 }

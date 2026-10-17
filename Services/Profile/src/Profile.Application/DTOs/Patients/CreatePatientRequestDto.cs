@@ -1,12 +1,12 @@
 namespace Clinic.Profile.Application.DTOs.Patients;
 
-public class CreatePatientRequestDto
+public record CreatePatientRequestDto
 {
-    public string FirstName { get; set; } = string.Empty;
-    
-    public string LastName { get; set; } = string.Empty;
-    
-    public string? MiddleName { get; set; }
-    
-    public DateOnly DateOfBirth { get; set; }
+    public string FirstName { get; init; } = string.Empty;
+
+    public string LastName { get; init; } = string.Empty;
+
+    public string? MiddleName { get; init; }
+
+    public DateOnly DateOfBirth { get; init; }
 }

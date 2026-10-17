@@ -4,7 +4,7 @@ namespace Clinic.Profile.Application.Interfaces;
 
 public interface IReceptionistService
 {
-    Task<List<ReceptionistResponseDto>> GetAllAsync(string? fullName = null);
+    Task<List<ReceptionistResponseDto>> GetAllAsync(ReceptionistFilterDto filter);
 
     Task<ReceptionistResponseDto?> GetByIdAsync(Guid id);
 

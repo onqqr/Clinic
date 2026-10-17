@@ -28,13 +28,9 @@ public class DoctorsController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<List<DoctorResponseDto>>> GetAll(
-        [FromQuery] string? fullName,
-        [FromQuery] string? specialization,
-        [FromQuery] Guid? officeId,
-        [FromQuery] bool onlyAvailable = false)
+        [FromQuery] DoctorFilterDto filter)
     {
-        var doctors = await _doctorService.GetAllAsync(
-            fullName, specialization, officeId, onlyAvailable);
+        var doctors = await _doctorService.GetAllAsync(filter);
 
         return Ok(doctors);
     }

@@ -4,7 +4,7 @@ namespace Clinic.Profile.Application.Interfaces;
 
 public interface IPatientService
 {
-    Task<List<PatientResponseDto>> GetAllAsync(string? fullName = null);
+    Task<List<PatientResponseDto>> GetAllAsync(PatientFilterDto filter);
 
     Task<PatientResponseDto?> GetByIdAsync(Guid id);
 

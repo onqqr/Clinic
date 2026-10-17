@@ -1,7 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using Clinic.Profile.Domain.Interfaces;
 using Clinic.Profile.Domain.Entities;
+using Clinic.Profile.Domain.Interfaces;
+using Clinic.Profile.Domain.Specifications;
 using Clinic.Profile.Infrastructure.Data;
+using Clinic.Profile.Infrastructure.Specifications;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinic.Profile.Infrastructure.Repositories;
 
@@ -14,25 +16,13 @@ public class PatientRepository : IPatientRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<Patient>> GetAllAsync(string? fullName = null)
+    public async Task<List<Patient>> ListAsync(ISpecification<Patient> specification)
     {
-        var query = _dbContext.Patients.AsNoTracking().AsQueryable();
+        var query = SpecificationEvaluator.GetQuery(
+            _dbContext.Patients.AsQueryable(),
+            specification);
 
-        if (!string.IsNullOrWhiteSpace(fullName))
-        {
-            var search = fullName.Trim();
-
-            query = query.Where(p =>
-                EF.Functions.ILike(
-                    (p.FirstName + " " + p.LastName + " " +
-                     (p.MiddleName ?? "")).Trim(),
-                    $"%{search}%"));
-        }
-
-        return await query
-            .OrderBy(p => p.LastName)
-            .ThenBy(p => p.FirstName)
-            .ToListAsync();
+        return await query.ToListAsync();
     }
 
     public Task<Patient?> GetByIdAsync(Guid id)
@@ -55,12 +45,5 @@ public class PatientRepository : IPatientRepository
     {
         _dbContext.Patients.Remove(patient);
         await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task<List<Patient>> GetUnlinkedAsync()
-    {
-        return await  _dbContext.Patients
-            .Where(p => !p.IsLinkedToAccount)
-            .ToListAsync();
     }
 }

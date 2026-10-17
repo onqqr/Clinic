@@ -1,20 +1,20 @@
 namespace Clinic.Profile.Application.DTOs.Patients;
 
-public class PatientResponseDto
+public record PatientResponseDto
 {
-    public Guid Id { get; set; }
-    
-    public string? PhotoUrl { get; set; }
-    
-    public string FirstName { get; set; } = string.Empty;
-    
-    public string LastName { get; set; } = string.Empty;
-    
-    public string? MiddleName { get; set; }
-    
-    public string? PhoneNumber { get; set; }
-    
-    public DateOnly DateOfBirth { get; set; }
-    
-    public bool IsLinkedToAccount { get; set; }
+    public Guid Id { get; init; }
+
+    public string? PhotoUrl { get; init; }
+
+    public string FirstName { get; init; } = string.Empty;
+
+    public string LastName { get; init; } = string.Empty;
+
+    public string? MiddleName { get; init; }
+
+    public string? PhoneNumber { get; init; }
+
+    public DateOnly DateOfBirth { get; init; }
+
+    public bool IsLinkedToAccount { get; init; }
 }

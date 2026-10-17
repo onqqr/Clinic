@@ -25,9 +25,9 @@ public class ReceptionistsController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<List<ReceptionistResponseDto>>> GetAll(
-        [FromQuery] string? fullName)
+        [FromQuery] ReceptionistFilterDto filter)
     {
-        var receptionists = await _receptionistService.GetAllAsync(fullName);
+        var receptionists = await _receptionistService.GetAllAsync(filter);
 
         return Ok(receptionists);
     }

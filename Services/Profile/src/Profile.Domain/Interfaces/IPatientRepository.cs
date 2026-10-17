@@ -1,10 +1,11 @@
 using Clinic.Profile.Domain.Entities;
+using Clinic.Profile.Domain.Specifications;
 
 namespace Clinic.Profile.Domain.Interfaces;
 
 public interface IPatientRepository
 {
-    Task<List<Patient>> GetAllAsync(string? fullName = null);
+    Task<List<Patient>> ListAsync(ISpecification<Patient> specification);
 
     Task<Patient?> GetByIdAsync(Guid id);
 
@@ -13,6 +14,4 @@ public interface IPatientRepository
     Task UpdateAsync(Patient patient);
 
     Task DeleteAsync(Patient patient);
-
-    Task<List<Patient>> GetUnlinkedAsync();
 }

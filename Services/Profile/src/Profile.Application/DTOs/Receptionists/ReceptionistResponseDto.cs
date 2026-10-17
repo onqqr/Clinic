@@ -1,20 +1,20 @@
 namespace Clinic.Profile.Application.DTOs.Receptionists;
 
-public class ReceptionistResponseDto
+public record ReceptionistResponseDto
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; init; }
 
-    public string? PhotoUrl { get; set; }
+    public string? PhotoUrl { get; init; }
 
-    public string FirstName { get; set; } = string.Empty;
+    public string FirstName { get; init; } = string.Empty;
 
-    public string LastName { get; set; } = string.Empty;
+    public string LastName { get; init; } = string.Empty;
 
-    public string? MiddleName { get; set; }
+    public string? MiddleName { get; init; }
 
-    public string Email { get; set; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
 
-    public Guid OfficeId { get; set; }
+    public Guid OfficeId { get; init; }
 
-    public string? OfficeAddress { get; set; }
+    public string? OfficeAddress { get; init; }
 }

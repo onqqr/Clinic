@@ -1,10 +1,10 @@
 namespace Clinic.Profile.Application.DTOs.Offices;
 
-public class OfficeSnapshotResponseDto
+public record OfficeSnapshotResponseDto
 {
-    public Guid Id { get; set; }
-    
-    public string Address { get; set; } = string.Empty;
-    
-    public string Status { get; set; } = string.Empty;
+    public Guid Id { get; init; }
+
+    public string Address { get; init; } = string.Empty;
+
+    public string Status { get; init; } = string.Empty;
 }

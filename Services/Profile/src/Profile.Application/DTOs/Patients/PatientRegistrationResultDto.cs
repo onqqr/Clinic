@@ -2,11 +2,11 @@ using Clinic.Profile.Application.Enums;
 
 namespace Clinic.Profile.Application.DTOs.Patients;
 
-public class PatientRegistrationResultDto
+public record PatientRegistrationResultDto
 {
-    public PatientRegistrationOutcome Outcome { get; set; }
+    public PatientRegistrationOutcome Outcome { get; init; }
 
-    public PatientResponseDto? Patient { get; set; }
+    public PatientResponseDto? Patient { get; init; }
 
-    public PatientResponseDto? MatchedPatient { get; set; }
+    public PatientResponseDto? MatchedPatient { get; init; }
 }

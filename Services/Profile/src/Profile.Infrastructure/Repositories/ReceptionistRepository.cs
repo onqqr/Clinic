@@ -1,6 +1,8 @@
-using Clinic.Profile.Domain.Interfaces;
 using Clinic.Profile.Domain.Entities;
+using Clinic.Profile.Domain.Interfaces;
+using Clinic.Profile.Domain.Specifications;
 using Clinic.Profile.Infrastructure.Data;
+using Clinic.Profile.Infrastructure.Specifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clinic.Profile.Infrastructure.Repositories;
@@ -14,32 +16,20 @@ public class ReceptionistRepository : IReceptionistRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<Receptionist>> GetAllAsync(string? fullName = null)
+    public async Task<List<Receptionist>> ListAsync(ISpecification<Receptionist> specification)
     {
-        var query = _dbContext.Receptionists.AsNoTracking().AsQueryable();
+        var query = SpecificationEvaluator.GetQuery(
+            _dbContext.Receptionists.AsQueryable(),
+            specification);
 
-        if (!string.IsNullOrWhiteSpace(fullName))
-        {
-            var search = fullName.Trim();
-
-            query = query.Where(p =>
-                EF.Functions.ILike(
-                    (p.FirstName + " " + p.LastName + " " +
-                     (p.MiddleName ?? "")).Trim(),
-                    $"%{search}%"));
-        }
-
-        return await query
-            .OrderBy(p => p.LastName)
-            .ThenBy(p => p.FirstName)
-            .ToListAsync();
+        return await query.ToListAsync();
     }
 
     public Task<Receptionist?> GetByIdAsync(Guid id)
     {
         return _dbContext.Receptionists.FirstOrDefaultAsync(p => p.Id == id);
     }
-    
+
     public Task<bool> EmailExistsAsync(
         string email,
         Guid? excludeReceptionistId = null)

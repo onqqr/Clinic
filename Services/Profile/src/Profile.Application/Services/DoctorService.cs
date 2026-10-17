@@ -1,8 +1,10 @@
+using AutoMapper;
 using Clinic.Profile.Application.DTOs.Doctors;
 using Clinic.Profile.Application.Events;
 using Clinic.Profile.Application.Interfaces;
 using Clinic.Profile.Domain.Entities;
 using Clinic.Profile.Domain.Interfaces;
+using Clinic.Profile.Domain.Specifications;
 
 namespace Clinic.Profile.Application.Services;
 
@@ -11,29 +13,29 @@ public class DoctorService : IDoctorService
     private readonly IDoctorRepository _doctorRepository;
     private readonly IOfficeSnapshotRepository _officeSnapshotRepository;
     private readonly IEventPublisher _eventPublisher;
+    private readonly IMapper _mapper;
 
     public DoctorService(
         IDoctorRepository doctorRepository,
         IOfficeSnapshotRepository officeSnapshotRepository,
-        IEventPublisher eventPublisher)
+        IEventPublisher eventPublisher,
+        IMapper mapper)
     {
         _doctorRepository = doctorRepository;
         _officeSnapshotRepository = officeSnapshotRepository;
         _eventPublisher = eventPublisher;
+        _mapper = mapper;
     }
 
-    public async Task<List<DoctorResponseDto>> GetAllAsync(
-        string? fullName = null,
-        string? specialization = null,
-        Guid? officeId = null,
-        bool onlyAvailable = false)
+    public async Task<List<DoctorResponseDto>> GetAllAsync(DoctorFilterDto filter)
     {
-        var doctors = await _doctorRepository.GetAllAsync(
-            fullName,
-            specialization,
-            officeId,
-            onlyAvailable);
+        var specification = new DoctorFilterSpecification(
+            filter.FullName,
+            filter.Specialization,
+            filter.OfficeId,
+            filter.OnlyAvailable);
 
+        var doctors = await _doctorRepository.ListAsync(specification);
         var result = new List<DoctorResponseDto>();
 
         foreach (var doctor in doctors)
@@ -56,8 +58,7 @@ public class DoctorService : IDoctorService
         return await MapToDtoAsync(doctor);
     }
 
-    public async Task<DoctorResponseDto> CreateAsync(
-        CreateDoctorRequestDto request)
+    public async Task<DoctorResponseDto> CreateAsync(CreateDoctorRequestDto request)
     {
         if (await _doctorRepository.EmailExistsAsync(request.Email))
         {
@@ -65,20 +66,7 @@ public class DoctorService : IDoctorService
                 "User with this email already exists.");
         }
 
-        var doctor = new Doctor
-        {
-            PhotoUrl = request.PhotoUrl,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            MiddleName = request.MiddleName,
-            DateOfBirth = request.DateOfBirth,
-            Email = request.Email,
-            Specialization = request.Specialization,
-            OfficeId = request.OfficeId,
-            CareerStartYear = request.CareerStartYear,
-            Status = request.Status
-        };
-
+        var doctor = _mapper.Map<Doctor>(request);
         await _doctorRepository.AddAsync(doctor);
 
         await _eventPublisher.PublishAsync(
@@ -104,17 +92,7 @@ public class DoctorService : IDoctorService
                 "User with this email already exists.");
         }
 
-        doctor.PhotoUrl = request.PhotoUrl;
-        doctor.FirstName = request.FirstName;
-        doctor.LastName = request.LastName;
-        doctor.MiddleName = request.MiddleName;
-        doctor.DateOfBirth = request.DateOfBirth;
-        doctor.Email = request.Email;
-        doctor.Specialization = request.Specialization;
-        doctor.OfficeId = request.OfficeId;
-        doctor.CareerStartYear = request.CareerStartYear;
-        doctor.Status = request.Status;
-
+        _mapper.Map(request, doctor);
         await _doctorRepository.UpdateAsync(doctor);
 
         return await MapToDtoAsync(doctor);
@@ -153,23 +131,9 @@ public class DoctorService : IDoctorService
 
     private async Task<DoctorResponseDto> MapToDtoAsync(Doctor doctor)
     {
+        var dto = _mapper.Map<DoctorResponseDto>(doctor);
         var office = await _officeSnapshotRepository.GetByIdAsync(doctor.OfficeId);
 
-        return new DoctorResponseDto
-        {
-            Id = doctor.Id,
-            PhotoUrl = doctor.PhotoUrl,
-            FirstName = doctor.FirstName,
-            LastName = doctor.LastName,
-            MiddleName = doctor.MiddleName,
-            DateOfBirth = doctor.DateOfBirth,
-            Email = doctor.Email,
-            Specialization = doctor.Specialization,
-            OfficeId = doctor.OfficeId,
-            OfficeAddress = office?.Address,
-            CareerStartYear = doctor.CareerStartYear,
-            Experience = DateTime.Today.Year - doctor.CareerStartYear + 1,
-            Status = doctor.Status
-        };
+        return dto with { OfficeAddress = office?.Address };
     }
 }

@@ -1,14 +1,11 @@
 using Clinic.Profile.Domain.Entities;
+using Clinic.Profile.Domain.Specifications;
 
 namespace Clinic.Profile.Domain.Interfaces;
 
 public interface IDoctorRepository
 {
-    Task<List<Doctor>> GetAllAsync(
-        string? fullName = null,
-        string? specialization = null,
-        Guid? officeId = null,
-        bool onlyAvailable = false);
+    Task<List<Doctor>> ListAsync(ISpecification<Doctor> specification);
 
     Task<Doctor?> GetByIdAsync(Guid id);
 

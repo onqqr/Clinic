@@ -1,3 +1,4 @@
+using AutoMapper;
 using Clinic.Profile.Application.DTOs.Offices;
 using Clinic.Profile.Application.Interfaces;
 using Clinic.Profile.Domain.Entities;
@@ -8,10 +9,14 @@ namespace Clinic.Profile.Application.Services;
 public class OfficeSnapshotService : IOfficeSnapshotService
 {
     private readonly IOfficeSnapshotRepository _officeSnapshotRepository;
+    private readonly IMapper _mapper;
 
-    public OfficeSnapshotService(IOfficeSnapshotRepository officeSnapshotRepository)
+    public OfficeSnapshotService(
+        IOfficeSnapshotRepository officeSnapshotRepository,
+        IMapper mapper)
     {
         _officeSnapshotRepository = officeSnapshotRepository;
+        _mapper = mapper;
     }
 
     public async Task<OfficeSnapshotResponseDto?> GetByIdAsync(Guid id)
@@ -23,31 +28,15 @@ public class OfficeSnapshotService : IOfficeSnapshotService
             return null;
         }
 
-        return MapToDto(snapshot);
+        return _mapper.Map<OfficeSnapshotResponseDto>(snapshot);
     }
 
     public async Task<OfficeSnapshotResponseDto> UpsertAsync(
         UpsertOfficeSnapshotRequestDto request)
     {
-        var snapshot = new OfficeSnapshot
-        {
-            Id = request.Id,
-            Address = request.Address,
-            Status = request.Status
-        };
-
+        var snapshot = _mapper.Map<OfficeSnapshot>(request);
         await _officeSnapshotRepository.UpsertAsync(snapshot);
 
-        return MapToDto(snapshot);
-    }
-
-    private static OfficeSnapshotResponseDto MapToDto(OfficeSnapshot snapshot)
-    {
-        return new OfficeSnapshotResponseDto
-        {
-            Id = snapshot.Id,
-            Address = snapshot.Address,
-            Status = snapshot.Status
-        };
+        return _mapper.Map<OfficeSnapshotResponseDto>(snapshot);
     }
 }
