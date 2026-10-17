@@ -1,20 +1,20 @@
-using Microsoft.EntityFrameworkCore;
-using Clinic.Profile.Application.Interfaces;
 using Clinic.Profile.Domain.Entities;
 using Clinic.Profile.Domain.Enums;
+using Clinic.Profile.Domain.Interfaces;
 using Clinic.Profile.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinic.Profile.Infrastructure.Repositories;
 
 public class DoctorRepository : IDoctorRepository
 {
     private readonly ProfilesDbContext _dbContext;
-    
+
     public DoctorRepository(ProfilesDbContext dbContext)
     {
         _dbContext = dbContext;
     }
-    
+
     public async Task<List<Doctor>> GetAllAsync(
         string? fullName = null,
         string? specialization = null,
@@ -56,12 +56,6 @@ public class DoctorRepository : IDoctorRepository
     public Task<Doctor?> GetByIdAsync(Guid id)
     {
         return _dbContext.Doctors.FirstOrDefaultAsync(d => d.Id == id);
-    }
-
-    public Task<Doctor?> GetByEmailAsync(string email)
-    {
-        return _dbContext.Doctors.FirstOrDefaultAsync(
-            d => d.Email.ToLower() == email.Trim().ToLower());
     }
 
     public Task<bool> EmailExistsAsync(

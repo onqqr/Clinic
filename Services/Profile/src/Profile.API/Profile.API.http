@@ -1,6 +1,83 @@
 @ProfileApi_HostAddress = http://localhost:5286
 
-GET {{ProfileApi_HostAddress}}/weatherforecast/
+### Doctors
+GET {{ProfileApi_HostAddress}}/api/Doctors
 Accept: application/json
 
 ###
+GET {{ProfileApi_HostAddress}}/api/Doctors/00000000-0000-0000-0000-000000000001
+Accept: application/json
+
+###
+POST {{ProfileApi_HostAddress}}/api/Doctors
+Content-Type: application/json
+
+{
+  "firstName": "Ivan",
+  "lastName": "Petrov",
+  "middleName": "Sergeevich",
+  "dateOfBirth": "1985-04-12",
+  "email": "ivan.petrov@clinic.local",
+  "specialization": "Therapist",
+  "officeId": "00000000-0000-0000-0000-000000000010",
+  "careerStartYear": 2010,
+  "status": "AtWork"
+}
+
+### Patients
+GET {{ProfileApi_HostAddress}}/api/Patients
+Accept: application/json
+
+###
+POST {{ProfileApi_HostAddress}}/api/Patients
+Content-Type: application/json
+
+{
+  "firstName": "Anna",
+  "lastName": "Sidorova",
+  "middleName": null,
+  "dateOfBirth": "1992-08-21"
+}
+
+###
+POST {{ProfileApi_HostAddress}}/api/Patients/register
+Content-Type: application/json
+
+{
+  "photoUrl": null,
+  "firstName": "Anna",
+  "lastName": "Sidorova",
+  "middleName": null,
+  "phoneNumber": "+375291112233",
+  "dateOfBirth": "1992-08-21"
+}
+
+### Receptionists
+GET {{ProfileApi_HostAddress}}/api/Receptionists
+Accept: application/json
+
+###
+POST {{ProfileApi_HostAddress}}/api/Receptionists
+Content-Type: application/json
+
+{
+  "firstName": "Olga",
+  "lastName": "Ivanova",
+  "middleName": null,
+  "email": "olga.ivanova@clinic.local",
+  "officeId": "00000000-0000-0000-0000-000000000010"
+}
+
+### Office snapshots
+GET {{ProfileApi_HostAddress}}/api/OfficeSnapshots/00000000-0000-0000-0000-000000000010
+Accept: application/json
+
+###
+POST {{ProfileApi_HostAddress}}/api/OfficeSnapshots
+Content-Type: application/json
+
+{
+  "id": "00000000-0000-0000-0000-000000000010",
+  "address": "Minsk, Nezavisimosti 1",
+  "status": "Active"
+}

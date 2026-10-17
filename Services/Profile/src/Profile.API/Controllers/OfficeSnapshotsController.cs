@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
 using Clinic.Profile.Application.DTOs.Offices;
 using Clinic.Profile.Application.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Clinic.Profile.API.Controllers;
 
@@ -8,26 +8,33 @@ namespace Clinic.Profile.API.Controllers;
 [Route("api/[controller]")]
 public class OfficeSnapshotsController : ControllerBase
 {
-    private readonly IOfficeSnapshotService _service;
+    private readonly IOfficeSnapshotService _officeSnapshotService;
 
-    public OfficeSnapshotsController(IOfficeSnapshotService service)
+    public OfficeSnapshotsController(IOfficeSnapshotService officeSnapshotService)
     {
-        _service = service;
+        _officeSnapshotService = officeSnapshotService;
     }
-    
+
     // placeholder test (rabbitMQ will come later)
     [HttpPost]
     public async Task<ActionResult<OfficeSnapshotResponseDto>> Upsert(
         UpsertOfficeSnapshotRequestDto request)
     {
-        var result = await _service.UpsertAsync(request);
+        var result = await _officeSnapshotService.UpsertAsync(request);
+
         return Ok(result);
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<OfficeSnapshotResponseDto>> GetById(Guid id)
     {
-        var snapshot = await _service.GetByIdAsync(id);
-        return snapshot is null ? NotFound() : Ok(snapshot);
+        var snapshot = await _officeSnapshotService.GetByIdAsync(id);
+
+        if (snapshot is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(snapshot);
     }
 }

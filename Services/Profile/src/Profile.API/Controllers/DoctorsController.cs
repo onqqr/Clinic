@@ -1,7 +1,7 @@
-using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
 using Clinic.Profile.Application.DTOs.Doctors;
 using Clinic.Profile.Application.Interfaces;
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Clinic.Profile.API.Controllers;
 
@@ -9,18 +9,18 @@ namespace Clinic.Profile.API.Controllers;
 [Route("api/[controller]")]
 public class DoctorsController : ControllerBase
 {
-    private readonly IDoctorService _service;
+    private readonly IDoctorService _doctorService;
     private readonly IValidator<CreateDoctorRequestDto> _createValidator;
     private readonly IValidator<UpdateDoctorRequestDto> _updateValidator;
     private readonly IValidator<ChangeDoctorStatusRequestDto> _changeStatusValidator;
 
     public DoctorsController(
-        IDoctorService service,
+        IDoctorService doctorService,
         IValidator<CreateDoctorRequestDto> createValidator,
         IValidator<UpdateDoctorRequestDto> updateValidator,
         IValidator<ChangeDoctorStatusRequestDto> changeStatusValidator)
     {
-        _service = service;
+        _doctorService = doctorService;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
         _changeStatusValidator = changeStatusValidator;
@@ -33,7 +33,7 @@ public class DoctorsController : ControllerBase
         [FromQuery] Guid? officeId,
         [FromQuery] bool onlyAvailable = false)
     {
-        var doctors = await _service.GetAllAsync(
+        var doctors = await _doctorService.GetAllAsync(
             fullName, specialization, officeId, onlyAvailable);
 
         return Ok(doctors);
@@ -42,9 +42,14 @@ public class DoctorsController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<DoctorResponseDto>> GetById(Guid id)
     {
-        var doctor = await _service.GetByIdAsync(id);
+        var doctor = await _doctorService.GetByIdAsync(id);
 
-        return doctor is null ? NotFound() : Ok(doctor);
+        if (doctor is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(doctor);
     }
 
     [HttpPost]
@@ -54,21 +59,16 @@ public class DoctorsController : ControllerBase
         var validation = await _createValidator.ValidateAsync(request);
 
         if (!validation.IsValid)
+        {
             return BadRequest(validation.Errors);
-
-        try
-        {
-            var doctor = await _service.CreateAsync(request);
-
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = doctor.Id },
-                doctor);
         }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(new { message = ex.Message });
-        }
+
+        var doctor = await _doctorService.CreateAsync(request);
+
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = doctor.Id },
+            doctor);
     }
 
     [HttpPut("{id:guid}")]
@@ -79,38 +79,52 @@ public class DoctorsController : ControllerBase
         var validation = await _updateValidator.ValidateAsync(request);
 
         if (!validation.IsValid)
+        {
             return BadRequest(validation.Errors);
-
-        try
-        {
-            var doctor = await _service.UpdateAsync(id, request);
-
-            return doctor is null ? NotFound() : Ok(doctor);
         }
-        catch (InvalidOperationException ex)
+
+        var doctor = await _doctorService.UpdateAsync(id, request);
+
+        if (doctor is null)
         {
-            return Conflict(new { message = ex.Message });
+            return NotFound();
         }
+
+        return Ok(doctor);
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await _service.DeleteAsync(id);
+        var deleted = await _doctorService.DeleteAsync(id);
 
-        return deleted ? NoContent() : NotFound();
+        if (!deleted)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
     }
-    
+
     [HttpPatch("{id:guid}/status")]
     public async Task<ActionResult<DoctorResponseDto>> ChangeStatus(
         Guid id,
         ChangeDoctorStatusRequestDto request)
     {
         var validation = await _changeStatusValidator.ValidateAsync(request);
-        if (!validation.IsValid)
-            return BadRequest(validation.Errors);
 
-        var doctor = await _service.ChangeStatusAsync(id, request);
-        return doctor is null ? NotFound() : Ok(doctor);
+        if (!validation.IsValid)
+        {
+            return BadRequest(validation.Errors);
+        }
+
+        var doctor = await _doctorService.ChangeStatusAsync(id, request);
+
+        if (doctor is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(doctor);
     }
 }

@@ -1,7 +1,7 @@
-using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
 using Clinic.Profile.Application.DTOs.Patients;
 using Clinic.Profile.Application.Interfaces;
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Clinic.Profile.API.Controllers;
 
@@ -9,18 +9,18 @@ namespace Clinic.Profile.API.Controllers;
 [Route("api/[controller]")]
 public class PatientsController : ControllerBase
 {
-    private readonly IPatientService _service;
+    private readonly IPatientService _patientService;
     private readonly IValidator<CreatePatientRequestDto> _createValidator;
     private readonly IValidator<UpdatePatientRequestDto> _updateValidator;
     private readonly IValidator<RegisterPatientRequestDto> _registerValidator;
 
     public PatientsController(
-        IPatientService service,
+        IPatientService patientService,
         IValidator<CreatePatientRequestDto> createValidator,
         IValidator<UpdatePatientRequestDto> updateValidator,
         IValidator<RegisterPatientRequestDto> registerValidator)
     {
-        _service = service;
+        _patientService = patientService;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
         _registerValidator = registerValidator;
@@ -30,10 +30,12 @@ public class PatientsController : ControllerBase
     public async Task<ActionResult<List<PatientResponseDto>>> GetAll(
         [FromQuery] string? fullName)
     {
-        var patients = await _service.GetAllAsync(fullName);
+        var patients = await _patientService.GetAllAsync(fullName);
 
         if (!string.IsNullOrWhiteSpace(fullName) && patients.Count == 0)
+        {
             return Ok(new { message = "No matches found", items = patients });
+        }
 
         return Ok(patients);
     }
@@ -41,8 +43,14 @@ public class PatientsController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PatientResponseDto>> GetById(Guid id)
     {
-        var patient = await _service.GetByIdAsync(id);
-        return patient is null ? NotFound() : Ok(patient);
+        var patient = await _patientService.GetByIdAsync(id);
+
+        if (patient is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(patient);
     }
 
     [HttpPost]
@@ -50,10 +58,13 @@ public class PatientsController : ControllerBase
         CreatePatientRequestDto request)
     {
         var validation = await _createValidator.ValidateAsync(request);
-        if (!validation.IsValid)
-            return BadRequest(validation.Errors);
 
-        var patient = await _service.CreateAsync(request);
+        if (!validation.IsValid)
+        {
+            return BadRequest(validation.Errors);
+        }
+
+        var patient = await _patientService.CreateAsync(request);
 
         return CreatedAtAction(
             nameof(GetById),
@@ -67,29 +78,48 @@ public class PatientsController : ControllerBase
         UpdatePatientRequestDto request)
     {
         var validation = await _updateValidator.ValidateAsync(request);
-        if (!validation.IsValid)
-            return BadRequest(validation.Errors);
 
-        var patient = await _service.UpdateAsync(id, request);
-        return patient is null ? NotFound() : Ok(patient);
+        if (!validation.IsValid)
+        {
+            return BadRequest(validation.Errors);
+        }
+
+        var patient = await _patientService.UpdateAsync(id, request);
+
+        if (patient is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(patient);
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await _service.DeleteAsync(id);
-        return deleted ? NoContent() : NotFound();
+        var deleted = await _patientService.DeleteAsync(id);
+
+        if (!deleted)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
     }
-    
+
     [HttpPost("register")]
     public async Task<ActionResult<PatientRegistrationResultDto>> Register(
         RegisterPatientRequestDto request)
     {
         var validation = await _registerValidator.ValidateAsync(request);
-        if (!validation.IsValid)
-            return BadRequest(validation.Errors);
 
-        var result = await _service.RegisterAsync(request);
+        if (!validation.IsValid)
+        {
+            return BadRequest(validation.Errors);
+        }
+
+        var result = await _patientService.RegisterAsync(request);
+
         return Ok(result);
     }
 
@@ -98,17 +128,14 @@ public class PatientsController : ControllerBase
         ConfirmPatientMatchRequestDto request)
     {
         var validation = await _registerValidator.ValidateAsync(request.RegistrationData);
-        if (!validation.IsValid)
-            return BadRequest(validation.Errors);
 
-        try
+        if (!validation.IsValid)
         {
-            var result = await _service.ConfirmMatchAsync(request);
-            return Ok(result);
+            return BadRequest(validation.Errors);
         }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(new { message = ex.Message });
-        }
+
+        var result = await _patientService.ConfirmMatchAsync(request);
+
+        return Ok(result);
     }
 }

@@ -1,22 +1,29 @@
 using Clinic.Profile.Application.DTOs.Offices;
 using Clinic.Profile.Application.Interfaces;
 using Clinic.Profile.Domain.Entities;
+using Clinic.Profile.Domain.Interfaces;
 
 namespace Clinic.Profile.Application.Services;
 
 public class OfficeSnapshotService : IOfficeSnapshotService
 {
-    private readonly IOfficeSnapshotRepository _repository;
+    private readonly IOfficeSnapshotRepository _officeSnapshotRepository;
 
-    public OfficeSnapshotService(IOfficeSnapshotRepository repository)
+    public OfficeSnapshotService(IOfficeSnapshotRepository officeSnapshotRepository)
     {
-        _repository = repository;
+        _officeSnapshotRepository = officeSnapshotRepository;
     }
 
     public async Task<OfficeSnapshotResponseDto?> GetByIdAsync(Guid id)
     {
-        var snapshot = await _repository.GetByIdAsync(id);
-        return snapshot is null ? null : MapToDto(snapshot);
+        var snapshot = await _officeSnapshotRepository.GetByIdAsync(id);
+
+        if (snapshot is null)
+        {
+            return null;
+        }
+
+        return MapToDto(snapshot);
     }
 
     public async Task<OfficeSnapshotResponseDto> UpsertAsync(
@@ -29,14 +36,18 @@ public class OfficeSnapshotService : IOfficeSnapshotService
             Status = request.Status
         };
 
-        await _repository.UpsertAsync(snapshot);
+        await _officeSnapshotRepository.UpsertAsync(snapshot);
+
         return MapToDto(snapshot);
     }
 
-    private static OfficeSnapshotResponseDto MapToDto(OfficeSnapshot snapshot) => new()
+    private static OfficeSnapshotResponseDto MapToDto(OfficeSnapshot snapshot)
     {
-        Id = snapshot.Id,
-        Address = snapshot.Address,
-        Status = snapshot.Status
-    };
+        return new OfficeSnapshotResponseDto
+        {
+            Id = snapshot.Id,
+            Address = snapshot.Address,
+            Status = snapshot.Status
+        };
+    }
 }

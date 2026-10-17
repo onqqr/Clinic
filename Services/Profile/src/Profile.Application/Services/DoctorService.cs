@@ -2,22 +2,23 @@ using Clinic.Profile.Application.DTOs.Doctors;
 using Clinic.Profile.Application.Events;
 using Clinic.Profile.Application.Interfaces;
 using Clinic.Profile.Domain.Entities;
+using Clinic.Profile.Domain.Interfaces;
 
 namespace Clinic.Profile.Application.Services;
 
-public class DoctorService :  IDoctorService
+public class DoctorService : IDoctorService
 {
-    private readonly IDoctorRepository _repository;
-    private readonly IOfficeSnapshotRepository _officeSnapshots;
-    private  readonly IEventPublisher _eventPublisher;
+    private readonly IDoctorRepository _doctorRepository;
+    private readonly IOfficeSnapshotRepository _officeSnapshotRepository;
+    private readonly IEventPublisher _eventPublisher;
 
     public DoctorService(
-        IDoctorRepository repository,
-        IOfficeSnapshotRepository officeSnapshots,
+        IDoctorRepository doctorRepository,
+        IOfficeSnapshotRepository officeSnapshotRepository,
         IEventPublisher eventPublisher)
     {
-        _repository = repository;
-        _officeSnapshots = officeSnapshots;
+        _doctorRepository = doctorRepository;
+        _officeSnapshotRepository = officeSnapshotRepository;
         _eventPublisher = eventPublisher;
     }
 
@@ -27,35 +28,43 @@ public class DoctorService :  IDoctorService
         Guid? officeId = null,
         bool onlyAvailable = false)
     {
-        var doctors = await _repository.GetAllAsync(
+        var doctors = await _doctorRepository.GetAllAsync(
             fullName,
             specialization,
             officeId,
             onlyAvailable);
-        
+
         var result = new List<DoctorResponseDto>();
+
         foreach (var doctor in doctors)
+        {
             result.Add(await MapToDtoAsync(doctor));
+        }
 
         return result;
     }
 
     public async Task<DoctorResponseDto?> GetByIdAsync(Guid id)
     {
-        var doctor = await _repository.GetByIdAsync(id);
+        var doctor = await _doctorRepository.GetByIdAsync(id);
 
-        return doctor is null ? null : await MapToDtoAsync(doctor);
+        if (doctor is null)
+        {
+            return null;
+        }
+
+        return await MapToDtoAsync(doctor);
     }
 
     public async Task<DoctorResponseDto> CreateAsync(
         CreateDoctorRequestDto request)
     {
-        if (await _repository.EmailExistsAsync(request.Email))
+        if (await _doctorRepository.EmailExistsAsync(request.Email))
         {
             throw new InvalidOperationException(
                 "User with this email already exists.");
         }
-        
+
         var doctor = new Doctor
         {
             PhotoUrl = request.PhotoUrl,
@@ -70,8 +79,8 @@ public class DoctorService :  IDoctorService
             Status = request.Status
         };
 
-        await _repository.AddAsync(doctor);
-        
+        await _doctorRepository.AddAsync(doctor);
+
         await _eventPublisher.PublishAsync(
             new DoctorProfileCreated(doctor.Id, doctor.Email));
 
@@ -82,14 +91,14 @@ public class DoctorService :  IDoctorService
         Guid id,
         UpdateDoctorRequestDto request)
     {
-        var doctor = await _repository.GetByIdAsync(id);
+        var doctor = await _doctorRepository.GetByIdAsync(id);
 
         if (doctor is null)
         {
             return null;
         }
-        
-        if (await _repository.EmailExistsAsync(request.Email, id))
+
+        if (await _doctorRepository.EmailExistsAsync(request.Email, id))
         {
             throw new InvalidOperationException(
                 "User with this email already exists.");
@@ -106,28 +115,46 @@ public class DoctorService :  IDoctorService
         doctor.CareerStartYear = request.CareerStartYear;
         doctor.Status = request.Status;
 
-        await _repository.UpdateAsync(doctor);
+        await _doctorRepository.UpdateAsync(doctor);
 
         return await MapToDtoAsync(doctor);
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var doctor = await _repository.GetByIdAsync(id);
+        var doctor = await _doctorRepository.GetByIdAsync(id);
 
         if (doctor is null)
         {
             return false;
         }
 
-        await _repository.DeleteAsync(doctor);
+        await _doctorRepository.DeleteAsync(doctor);
 
         return true;
     }
 
+    public async Task<DoctorResponseDto?> ChangeStatusAsync(
+        Guid id,
+        ChangeDoctorStatusRequestDto request)
+    {
+        var doctor = await _doctorRepository.GetByIdAsync(id);
+
+        if (doctor is null)
+        {
+            return null;
+        }
+
+        doctor.Status = request.Status;
+        await _doctorRepository.UpdateAsync(doctor);
+
+        return await MapToDtoAsync(doctor);
+    }
+
     private async Task<DoctorResponseDto> MapToDtoAsync(Doctor doctor)
     {
-        var office = await _officeSnapshots.GetByIdAsync(doctor.OfficeId);
+        var office = await _officeSnapshotRepository.GetByIdAsync(doctor.OfficeId);
+
         return new DoctorResponseDto
         {
             Id = doctor.Id,
@@ -144,19 +171,5 @@ public class DoctorService :  IDoctorService
             Experience = DateTime.Today.Year - doctor.CareerStartYear + 1,
             Status = doctor.Status
         };
-    }
-    
-    public async Task<DoctorResponseDto?> ChangeStatusAsync(
-        Guid id,
-        ChangeDoctorStatusRequestDto request)
-    {
-        var doctor = await _repository.GetByIdAsync(id);
-        if (doctor is null)
-            return null;
-
-        doctor.Status = request.Status;
-        await _repository.UpdateAsync(doctor);
-
-        return await MapToDtoAsync(doctor);
     }
 }

@@ -1,6 +1,6 @@
 using Clinic.Profile.Domain.Entities;
 
-namespace Clinic.Profile.Application.Interfaces;
+namespace Clinic.Profile.Domain.Interfaces;
 
 public interface IDoctorRepository
 {
@@ -11,8 +11,6 @@ public interface IDoctorRepository
         bool onlyAvailable = false);
 
     Task<Doctor?> GetByIdAsync(Guid id);
-
-    Task<Doctor?> GetByEmailAsync(string email);
 
     Task AddAsync(Doctor doctor);
 

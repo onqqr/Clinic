@@ -5,5 +5,6 @@ namespace Clinic.Profile.Application.Interfaces;
 public interface IOfficeSnapshotService
 {
     Task<OfficeSnapshotResponseDto?> GetByIdAsync(Guid id);
-    Task<OfficeSnapshotResponseDto>  UpsertAsync(UpsertOfficeSnapshotRequestDto request);
+
+    Task<OfficeSnapshotResponseDto> UpsertAsync(UpsertOfficeSnapshotRequestDto request);
 }

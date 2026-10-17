@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Clinic.Profile.Application.Interfaces;
+using Clinic.Profile.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Clinic.Profile.Infrastructure.Messaging;

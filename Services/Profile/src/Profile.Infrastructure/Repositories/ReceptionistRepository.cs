@@ -1,4 +1,4 @@
-using Clinic.Profile.Application.Interfaces;
+using Clinic.Profile.Domain.Interfaces;
 using Clinic.Profile.Domain.Entities;
 using Clinic.Profile.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;

@@ -1,47 +1,56 @@
-using Clinic.Profile.Application.DTOs.Receptionist;
+using Clinic.Profile.Application.DTOs.Receptionists;
 using Clinic.Profile.Application.Events;
 using Clinic.Profile.Application.Interfaces;
 using Clinic.Profile.Domain.Entities;
+using Clinic.Profile.Domain.Interfaces;
 
 namespace Clinic.Profile.Application.Services;
 
 public class ReceptionistService : IReceptionistService
 {
-    private readonly IReceptionistRepository _repository;
-    private readonly IOfficeSnapshotRepository  _officeSnapshot;
+    private readonly IReceptionistRepository _receptionistRepository;
+    private readonly IOfficeSnapshotRepository _officeSnapshotRepository;
     private readonly IEventPublisher _eventPublisher;
 
     public ReceptionistService(
-        IReceptionistRepository repository, 
-        IOfficeSnapshotRepository officeSnapshot,
+        IReceptionistRepository receptionistRepository,
+        IOfficeSnapshotRepository officeSnapshotRepository,
         IEventPublisher eventPublisher)
     {
-        _repository = repository;
-        _officeSnapshot = officeSnapshot;
+        _receptionistRepository = receptionistRepository;
+        _officeSnapshotRepository = officeSnapshotRepository;
         _eventPublisher = eventPublisher;
     }
 
     public async Task<List<ReceptionistResponseDto>> GetAllAsync(string? fullName = null)
     {
-        var receptionists = await _repository.GetAllAsync(fullName);
+        var receptionists = await _receptionistRepository.GetAllAsync(fullName);
         var result = new List<ReceptionistResponseDto>();
+
         foreach (var receptionist in receptionists)
         {
             result.Add(await MapToDtoAsync(receptionist));
         }
+
         return result;
     }
 
     public async Task<ReceptionistResponseDto?> GetByIdAsync(Guid id)
     {
-        var receptionist = await _repository.GetByIdAsync(id);
-        return receptionist is null ? null : await MapToDtoAsync(receptionist);
+        var receptionist = await _receptionistRepository.GetByIdAsync(id);
+
+        if (receptionist is null)
+        {
+            return null;
+        }
+
+        return await MapToDtoAsync(receptionist);
     }
 
     public async Task<ReceptionistResponseDto> CreateAsync(
         CreateReceptionistRequestDto request)
     {
-        if (await _repository.EmailExistsAsync(request.Email))
+        if (await _receptionistRepository.EmailExistsAsync(request.Email))
         {
             throw new InvalidOperationException(
                 "User with this email already exists.");
@@ -57,11 +66,11 @@ public class ReceptionistService : IReceptionistService
             OfficeId = request.OfficeId
         };
 
-        await _repository.AddAsync(receptionist);
-        
+        await _receptionistRepository.AddAsync(receptionist);
+
         await _eventPublisher.PublishAsync(
             new ReceptionistProfileCreated(receptionist.Id, receptionist.Email));
-        
+
         return await MapToDtoAsync(receptionist);
     }
 
@@ -69,11 +78,14 @@ public class ReceptionistService : IReceptionistService
         Guid id,
         UpdateReceptionistRequestDto request)
     {
-        var receptionist = await _repository.GetByIdAsync(id);
-        if (receptionist is null)
-            return null;
+        var receptionist = await _receptionistRepository.GetByIdAsync(id);
 
-        if (await _repository.EmailExistsAsync(request.Email, id))
+        if (receptionist is null)
+        {
+            return null;
+        }
+
+        if (await _receptionistRepository.EmailExistsAsync(request.Email, id))
         {
             throw new InvalidOperationException(
                 "User with this email already exists.");
@@ -86,23 +98,28 @@ public class ReceptionistService : IReceptionistService
         receptionist.Email = request.Email;
         receptionist.OfficeId = request.OfficeId;
 
-        await _repository.UpdateAsync(receptionist);
+        await _receptionistRepository.UpdateAsync(receptionist);
+
         return await MapToDtoAsync(receptionist);
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var receptionist = await _repository.GetByIdAsync(id);
-        if (receptionist is null)
-            return false;
+        var receptionist = await _receptionistRepository.GetByIdAsync(id);
 
-        await _repository.DeleteAsync(receptionist);
+        if (receptionist is null)
+        {
+            return false;
+        }
+
+        await _receptionistRepository.DeleteAsync(receptionist);
+
         return true;
     }
 
     private async Task<ReceptionistResponseDto> MapToDtoAsync(Receptionist receptionist)
     {
-        var office = await _officeSnapshot.GetByIdAsync(receptionist.OfficeId);
+        var office = await _officeSnapshotRepository.GetByIdAsync(receptionist.OfficeId);
 
         return new ReceptionistResponseDto
         {

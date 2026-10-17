@@ -8,8 +8,12 @@ public class CreatePatientRequestValidator
 {
     public CreatePatientRequestValidator()
     {
-        RuleFor(x => x.FirstName).NotEmpty();
-        RuleFor(x => x.LastName).NotEmpty();
+        RuleFor(x => x.FirstName)
+            .NotEmpty();
+
+        RuleFor(x => x.LastName)
+            .NotEmpty();
+
         RuleFor(x => x.DateOfBirth)
             .NotEmpty()
             .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.Today));

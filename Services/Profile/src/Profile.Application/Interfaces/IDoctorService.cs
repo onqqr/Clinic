@@ -1,6 +1,6 @@
-namespace Clinic.Profile.Application.Interfaces;
-
 using Clinic.Profile.Application.DTOs.Doctors;
+
+namespace Clinic.Profile.Application.Interfaces;
 
 public interface IDoctorService
 {
@@ -20,8 +20,8 @@ public interface IDoctorService
         UpdateDoctorRequestDto request);
 
     Task<bool> DeleteAsync(Guid id);
-    
+
     Task<DoctorResponseDto?> ChangeStatusAsync(
-        Guid id, 
+        Guid id,
         ChangeDoctorStatusRequestDto request);
 }

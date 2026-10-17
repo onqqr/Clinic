@@ -1,8 +1,7 @@
-
+using Clinic.Profile.Application.DTOs.Receptionists;
+using Clinic.Profile.Application.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Clinic.Profile.Application.DTOs.Receptionist;
-using Clinic.Profile.Application.Interfaces;
 
 namespace Clinic.Profile.API.Controllers;
 
@@ -10,16 +9,16 @@ namespace Clinic.Profile.API.Controllers;
 [Route("api/[controller]")]
 public class ReceptionistsController : ControllerBase
 {
-    private readonly IReceptionistService _service;
+    private readonly IReceptionistService _receptionistService;
     private readonly IValidator<CreateReceptionistRequestDto> _createValidator;
     private readonly IValidator<UpdateReceptionistRequestDto> _updateValidator;
 
     public ReceptionistsController(
-        IReceptionistService service,
+        IReceptionistService receptionistService,
         IValidator<CreateReceptionistRequestDto> createValidator,
         IValidator<UpdateReceptionistRequestDto> updateValidator)
     {
-        _service = service;
+        _receptionistService = receptionistService;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -28,8 +27,7 @@ public class ReceptionistsController : ControllerBase
     public async Task<ActionResult<List<ReceptionistResponseDto>>> GetAll(
         [FromQuery] string? fullName)
     {
-        var receptionists = await _service.GetAllAsync(
-            fullName);
+        var receptionists = await _receptionistService.GetAllAsync(fullName);
 
         return Ok(receptionists);
     }
@@ -37,9 +35,14 @@ public class ReceptionistsController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ReceptionistResponseDto>> GetById(Guid id)
     {
-        var receptionist = await _service.GetByIdAsync(id);
+        var receptionist = await _receptionistService.GetByIdAsync(id);
 
-        return receptionist is null ? NotFound() : Ok(receptionist);
+        if (receptionist is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(receptionist);
     }
 
     [HttpPost]
@@ -49,21 +52,16 @@ public class ReceptionistsController : ControllerBase
         var validation = await _createValidator.ValidateAsync(request);
 
         if (!validation.IsValid)
+        {
             return BadRequest(validation.Errors);
-
-        try
-        {
-            var receptionist = await _service.CreateAsync(request);
-
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = receptionist.Id },
-                receptionist);
         }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(new { message = ex.Message });
-        }
+
+        var receptionist = await _receptionistService.CreateAsync(request);
+
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = receptionist.Id },
+            receptionist);
     }
 
     [HttpPut("{id:guid}")]
@@ -74,25 +72,30 @@ public class ReceptionistsController : ControllerBase
         var validation = await _updateValidator.ValidateAsync(request);
 
         if (!validation.IsValid)
+        {
             return BadRequest(validation.Errors);
-
-        try
-        {
-            var receptionist = await _service.UpdateAsync(id, request);
-
-            return receptionist is null ? NotFound() : Ok(receptionist);
         }
-        catch (InvalidOperationException ex)
+
+        var receptionist = await _receptionistService.UpdateAsync(id, request);
+
+        if (receptionist is null)
         {
-            return Conflict(new { message = ex.Message });
+            return NotFound();
         }
+
+        return Ok(receptionist);
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await _service.DeleteAsync(id);
+        var deleted = await _receptionistService.DeleteAsync(id);
 
-        return deleted ? NoContent() : NotFound();
+        if (!deleted)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
     }
 }
