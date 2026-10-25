@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Clinic.Profile.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/office-snapshots")]
 public class OfficeSnapshotsController : ControllerBase
 {
     private readonly IOfficeSnapshotService _officeSnapshotService;
