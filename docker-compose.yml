@@ -1,0 +1,68 @@
+#   docker compose up --build
+
+services:
+  office-db:
+    image: postgres:16-alpine
+    container_name: clinic-office-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-clinic}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-clinic}
+      POSTGRES_DB: clinic_office
+    ports:
+      - "${OFFICE_DB_PORT:-5433}:5432"
+    volumes:
+      - office-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-clinic} -d clinic_office"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  profile-db:
+    image: postgres:16-alpine
+    container_name: clinic-profile-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-clinic}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-clinic}
+      POSTGRES_DB: clinic_profiles
+    ports:
+      - "${PROFILE_DB_PORT:-5434}:5432"
+    volumes:
+      - profile-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-clinic} -d clinic_profiles"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  office-api:
+    build:
+      context: ./Services/Office
+      dockerfile: Dockerfile
+    container_name: clinic-office-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__OfficeDb: "Host=office-db;Port=5432;Database=clinic_office;Username=${POSTGRES_USER:-clinic};Password=${POSTGRES_PASSWORD:-clinic}"
+    ports:
+      - "${OFFICE_API_PORT:-5059}:8080"
+    depends_on:
+      office-db:
+        condition: service_healthy
+
+  profile-api:
+    build:
+      context: ./Services/Profile
+      dockerfile: Dockerfile
+    container_name: clinic-profile-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__ProfilesDb: "Host=profile-db;Port=5432;Database=clinic_profiles;Username=${POSTGRES_USER:-clinic};Password=${POSTGRES_PASSWORD:-clinic}"
+    ports:
+      - "${PROFILE_API_PORT:-5286}:8080"
+    depends_on:
+      profile-db:
+        condition: service_healthy
+
+volumes:
+  office-db-data:
+  profile-db-data:

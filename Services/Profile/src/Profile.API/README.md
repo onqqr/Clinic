@@ -42,7 +42,7 @@ API принимает запрос и отдаёт ответ.
 **Infrastructure**
 - `Data/` — ProfilesDbContext + миграции
 - `Repositories/`
-- `Messaging/` — LoggingEventPublisher (stub до RabbitMQ)
+- `Messaging/` — LoggingEventPublisher (временный stub вместо брокера)
 
 ## DI
 
@@ -55,7 +55,7 @@ API принимает запрос и отдаёт ответ.
 HTTP > Controller > *Service > *Repository > ProfilesDbContext > PostgreSQL
 ```
 
-События пока: Service → IEventPublisher → лог (позже RabbitMQ).
+События пока: Service → IEventPublisher → лог.
 
 ## основные эндпоинты
 
@@ -68,7 +68,7 @@ HTTP > Controller > *Service > *Repository > ProfilesDbContext > PostgreSQL
 | POST | `/api/patients/register` | регистрация + matching |
 | POST | `/api/patients/confirm-match` | подтвердить/отклонить match |
 | GET/POST | `/api/receptionists` | список / создать |
-| POST/GET | `/api/office-snapshots` | upsert snapshot (заглушка до Rabbit) |
+| POST/GET | `/api/office-snapshots` | upsert snapshot (заглушка синхронизации офисов) |
 
 Фильтр врачей «только At work»: query `onlyAvailable=true`.
 
@@ -80,7 +80,3 @@ dotnet run --project Services/Profile/src/Profile.API/Profile.API.csproj --launc
 
 http://localhost:5286  
 Swagger (Development): http://localhost:5286/swagger
-
-## позже
-
-RabbitMQ (офисы, appointments access, реальные события), MinIO (фото), snapshot услуг из Services API, юнит-тесты.

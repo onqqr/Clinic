@@ -15,7 +15,7 @@ public class OfficeSnapshotsController : ControllerBase
         _officeSnapshotService = officeSnapshotService;
     }
 
-    // placeholder test (rabbitMQ will come later)
+    // placeholder until async office sync is wired
     [HttpPost]
     public async Task<ActionResult<OfficeSnapshotResponseDto>> Upsert(
         UpsertOfficeSnapshotRequestDto request)

@@ -23,14 +23,16 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ProfilesDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-
-    using var scope = app.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<ProfilesDbContext>();
-    await dbContext.Database.MigrateAsync();
 }
 
 app.MapControllers();

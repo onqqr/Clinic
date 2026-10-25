@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+**/.idea/
+**/tests/
+**/*.user
+**/*.md
+.git/
+.gitignore

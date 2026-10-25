@@ -86,7 +86,3 @@ dotnet run --project Services/Office/src/Clinic.Offices.API/Clinic.Offices.API.c
 ```
 
 http://localhost:5059
-
-## доп инфа
-
-Позже: RabbitMQ (события между сервисами), MinIO (фото офисов).
