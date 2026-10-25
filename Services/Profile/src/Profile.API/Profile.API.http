@@ -1,15 +1,15 @@
 @ProfileApi_HostAddress = http://localhost:5286
 
 ### Doctors
-GET {{ProfileApi_HostAddress}}/api/Doctors
+GET {{ProfileApi_HostAddress}}/api/doctors
 Accept: application/json
 
 ###
-GET {{ProfileApi_HostAddress}}/api/Doctors/00000000-0000-0000-0000-000000000001
+GET {{ProfileApi_HostAddress}}/api/doctors/00000000-0000-0000-0000-000000000001
 Accept: application/json
 
 ###
-POST {{ProfileApi_HostAddress}}/api/Doctors
+POST {{ProfileApi_HostAddress}}/api/doctors
 Content-Type: application/json
 
 {
@@ -25,11 +25,11 @@ Content-Type: application/json
 }
 
 ### Patients
-GET {{ProfileApi_HostAddress}}/api/Patients
+GET {{ProfileApi_HostAddress}}/api/patients
 Accept: application/json
 
 ###
-POST {{ProfileApi_HostAddress}}/api/Patients
+POST {{ProfileApi_HostAddress}}/api/patients
 Content-Type: application/json
 
 {
@@ -40,7 +40,7 @@ Content-Type: application/json
 }
 
 ###
-POST {{ProfileApi_HostAddress}}/api/Patients/register
+POST {{ProfileApi_HostAddress}}/api/patients/register
 Content-Type: application/json
 
 {
@@ -53,11 +53,11 @@ Content-Type: application/json
 }
 
 ### Receptionists
-GET {{ProfileApi_HostAddress}}/api/Receptionists
+GET {{ProfileApi_HostAddress}}/api/receptionists
 Accept: application/json
 
 ###
-POST {{ProfileApi_HostAddress}}/api/Receptionists
+POST {{ProfileApi_HostAddress}}/api/receptionists
 Content-Type: application/json
 
 {
@@ -69,11 +69,11 @@ Content-Type: application/json
 }
 
 ### Office snapshots
-GET {{ProfileApi_HostAddress}}/api/OfficeSnapshots/00000000-0000-0000-0000-000000000010
+GET {{ProfileApi_HostAddress}}/api/office-snapshots/00000000-0000-0000-0000-000000000010
 Accept: application/json
 
 ###
-POST {{ProfileApi_HostAddress}}/api/OfficeSnapshots
+POST {{ProfileApi_HostAddress}}/api/office-snapshots
 Content-Type: application/json
 
 {

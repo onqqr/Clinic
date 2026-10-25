@@ -6,7 +6,7 @@ using Clinic.Offices.Application.Interfaces;
 namespace Clinic.Offices.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/offices")]
 public class OfficesController : ControllerBase
 {
     private readonly IOfficeService _officeService;

@@ -24,5 +24,9 @@ public class CreateOfficeRequestDtoValidator : AbstractValidator<CreateOfficeReq
             .WithMessage("Please, enter the phone number")
             .Matches(@"^\+\d+$")
             .WithMessage("You've entered an invalid phone number");
+
+        RuleFor(x => x.Status)
+            .IsInEnum()
+            .WithMessage("invalid office status");
     }
 }
