@@ -1,11 +1,9 @@
-using Clinic.Offices.Application;
-using Clinic.Offices.Infrastructure;
+using Clinic.Offices.API;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddOfficeServices(builder.Configuration);
 
 var app = builder.Build();
 
