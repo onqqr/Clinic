@@ -1,4 +1,3 @@
-# Multi-stage: SDK собирает, aspnet только запускает (меньше образ, без SDK в проде).
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 

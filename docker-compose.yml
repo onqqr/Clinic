@@ -35,6 +35,23 @@ services:
       timeout: 5s
       retries: 10
 
+  services-db:
+    image: postgres:16-alpine
+    container_name: clinic-services-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-clinic}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-clinic}
+      POSTGRES_DB: clinic_services
+    ports:
+      - "${SERVICES_DB_PORT:-5435}:5432"
+    volumes:
+      - services-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-clinic} -d clinic_services"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   office-api:
     build:
       context: ./Services/Office
@@ -63,6 +80,21 @@ services:
       profile-db:
         condition: service_healthy
 
+  services-api:
+    build:
+      context: ./Services/Services
+      dockerfile: Dockerfile
+    container_name: clinic-services-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__ServicesDb: "Host=services-db;Port=5432;Database=clinic_services;Username=${POSTGRES_USER:-clinic};Password=${POSTGRES_PASSWORD:-clinic}"
+    ports:
+      - "${SERVICES_API_PORT:-5080}:8080"
+    depends_on:
+      services-db:
+        condition: service_healthy
+
 volumes:
   office-db-data:
   profile-db-data:
+  services-db-data:

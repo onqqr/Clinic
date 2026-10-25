@@ -1,4 +1,3 @@
-# Multi-stage: SDK собирает, aspnet только запускает (меньше образ, без SDK в проде).
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
@@ -18,7 +17,6 @@ RUN dotnet publish src/Office.API/Office.API.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
-# В .NET 8+ контейнеры слушают 8080 по умолчанию.
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
