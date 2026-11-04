@@ -1,7 +1,6 @@
 using Clinic.Services.Application.Interfaces;
 using Clinic.Services.Application.Services;
 using Clinic.Services.Application.Validators;
-using Clinic.Services.Domain.Interfaces;
 using Clinic.Services.Infrastructure.Data;
 using Clinic.Services.Infrastructure.Messaging;
 using Clinic.Services.Infrastructure.Repositories;

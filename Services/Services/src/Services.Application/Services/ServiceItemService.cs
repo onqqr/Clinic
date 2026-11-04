@@ -1,6 +1,8 @@
 using Clinic.Services.Application.DTOs.Services;
 using Clinic.Services.Application.Interfaces;
+using Clinic.Services.Application.Mappings;
 using Clinic.Services.Domain.Entities;
+using Clinic.Services.Domain.Enums;
 
 namespace Clinic.Services.Application.Services;
 
@@ -21,7 +23,7 @@ public class ServiceItemService : IServiceItemService
     {
         var service = await _serviceItemRepository.GetByIdAsync(id);
 
-        return service is null ? null : Map(service);
+        return service is null ? null : service.ToResponseDto();
     }
 
     public async Task<ServiceResponseDto?> CreateAsync(
@@ -37,6 +39,16 @@ public class ServiceItemService : IServiceItemService
             return null;
         }
 
+        EnsureCanBeActive(specialization.Status, request.Status);
+
+        if (await _serviceItemRepository.ExistsByNameInSpecializationAsync(
+                specializationId,
+                request.Name))
+        {
+            throw new InvalidOperationException(
+                "Service with this name already exists in the specialization.");
+        }
+
         var service = new ServiceItem
         {
             Id = Guid.NewGuid(),
@@ -49,7 +61,7 @@ public class ServiceItemService : IServiceItemService
 
         await _serviceItemRepository.AddAsync(service);
 
-        return Map(service);
+        return service.ToResponseDto();
     }
 
     public async Task<ServiceResponseDto?> UpdateAsync(
@@ -63,6 +75,19 @@ public class ServiceItemService : IServiceItemService
             return null;
         }
 
+        await EnsureCanActivateUnderSpecializationAsync(
+            service.SpecializationId,
+            request.Status);
+
+        if (await _serviceItemRepository.ExistsByNameInSpecializationAsync(
+                service.SpecializationId,
+                request.Name,
+                id))
+        {
+            throw new InvalidOperationException(
+                "Service with this name already exists in the specialization.");
+        }
+
         service.Name = request.Name;
         service.Price = request.Price;
         service.Category = request.Category;
@@ -70,7 +95,7 @@ public class ServiceItemService : IServiceItemService
 
         await _serviceItemRepository.UpdateAsync(service);
 
-        return Map(service);
+        return service.ToResponseDto();
     }
 
     public async Task<ServiceResponseDto?> ChangeStatusAsync(
@@ -84,22 +109,46 @@ public class ServiceItemService : IServiceItemService
             return null;
         }
 
+        await EnsureCanActivateUnderSpecializationAsync(
+            service.SpecializationId,
+            request.Status);
+
         service.Status = request.Status;
         await _serviceItemRepository.UpdateAsync(service);
 
-        return Map(service);
+        return service.ToResponseDto();
     }
 
-    private static ServiceResponseDto Map(ServiceItem service)
+    private async Task EnsureCanActivateUnderSpecializationAsync(
+        Guid specializationId,
+        CatalogStatus targetStatus)
     {
-        return new ServiceResponseDto
+        if (targetStatus != CatalogStatus.Active)
         {
-            Id = service.Id,
-            SpecializationId = service.SpecializationId,
-            Name = service.Name,
-            Price = service.Price,
-            Category = service.Category,
-            Status = service.Status
-        };
+            return;
+        }
+
+        var specialization = await _specializationRepository.GetByIdAsync(
+            specializationId,
+            includeServices: false);
+
+        if (specialization is null)
+        {
+            throw new InvalidOperationException("Specialization was not found.");
+        }
+
+        EnsureCanBeActive(specialization.Status, targetStatus);
+    }
+
+    private static void EnsureCanBeActive(
+        CatalogStatus specializationStatus,
+        CatalogStatus serviceStatus)
+    {
+        if (serviceStatus == CatalogStatus.Active &&
+            specializationStatus != CatalogStatus.Active)
+        {
+            throw new InvalidOperationException(
+                "Cannot activate a service while its specialization is inactive.");
+        }
     }
 }

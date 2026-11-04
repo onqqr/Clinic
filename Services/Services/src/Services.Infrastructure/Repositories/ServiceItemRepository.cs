@@ -35,9 +35,23 @@ public class ServiceItemRepository : IServiceItemRepository
             .Include(s => s.Specialization)
             .Where(s =>
                 s.Category == category &&
-                s.Status == CatalogStatus.Active)
+                s.Status == CatalogStatus.Active &&
+                s.Specialization!.Status == CatalogStatus.Active)
             .OrderBy(s => s.Name)
             .ToListAsync();
+    }
+
+    public Task<bool> ExistsByNameInSpecializationAsync(
+        Guid specializationId,
+        string name,
+        Guid? excludeServiceId = null)
+    {
+        var normalizedName = name.Trim().ToLower();
+
+        return _context.ServiceItems.AnyAsync(s =>
+            s.SpecializationId == specializationId &&
+            s.Name.ToLower() == normalizedName &&
+            (!excludeServiceId.HasValue || s.Id != excludeServiceId.Value));
     }
 
     public async Task AddAsync(ServiceItem service)

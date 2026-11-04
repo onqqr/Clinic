@@ -33,6 +33,15 @@ public class SpecializationRepository : ISpecializationRepository
         return await query.FirstOrDefaultAsync(s => s.Id == id);
     }
 
+    public Task<bool> ExistsByNameAsync(string name, Guid? excludeSpecializationId = null)
+    {
+        var normalizedName = name.Trim().ToLower();
+
+        return _context.Specializations.AnyAsync(s =>
+            s.Name.ToLower() == normalizedName &&
+            (!excludeSpecializationId.HasValue || s.Id != excludeSpecializationId.Value));
+    }
+
     public async Task AddAsync(Specialization specialization)
     {
         await _context.Specializations.AddAsync(specialization);

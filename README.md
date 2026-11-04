@@ -35,4 +35,4 @@ docker compose up --build
 - **`docker-compose.yml`** - в корне весь стек одной командой.
 - **`Services/<Name>/Dockerfile`** - multi-stage сборка одного микросервиса.
 - Connection strings и порты - через environment в compose.
-- При старте API сами применяют EF-миграции.
+- EF-миграции при старте включаются флагом `Database:ApplyMigrationsOnStartup` (в Development и docker-compose — `true`).

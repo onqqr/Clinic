@@ -59,6 +59,7 @@ services:
     container_name: clinic-office-api
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      Database__ApplyMigrationsOnStartup: "true"
       ConnectionStrings__OfficeDb: "Host=office-db;Port=5432;Database=clinic_office;Username=${POSTGRES_USER:-clinic};Password=${POSTGRES_PASSWORD:-clinic}"
     ports:
       - "${OFFICE_API_PORT:-5059}:8080"
@@ -73,6 +74,7 @@ services:
     container_name: clinic-profile-api
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      Database__ApplyMigrationsOnStartup: "true"
       ConnectionStrings__ProfilesDb: "Host=profile-db;Port=5432;Database=clinic_profiles;Username=${POSTGRES_USER:-clinic};Password=${POSTGRES_PASSWORD:-clinic}"
     ports:
       - "${PROFILE_API_PORT:-5286}:8080"
@@ -87,6 +89,7 @@ services:
     container_name: clinic-services-api
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      Database__ApplyMigrationsOnStartup: "true"
       ConnectionStrings__ServicesDb: "Host=services-db;Port=5432;Database=clinic_services;Username=${POSTGRES_USER:-clinic};Password=${POSTGRES_PASSWORD:-clinic}"
     ports:
       - "${SERVICES_API_PORT:-5080}:8080"

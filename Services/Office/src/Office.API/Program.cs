@@ -17,8 +17,9 @@ builder.Services.AddOfficeServices(builder.Configuration);
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+if (app.Configuration.GetValue("Database:ApplyMigrationsOnStartup", false))
 {
+    using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<OfficeDbContext>();
     await dbContext.Database.MigrateAsync();
 }

@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Clinic.Services.API;
+using Clinic.Services.API.Middleware;
 using Clinic.Services.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,12 +15,17 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 builder.Services.AddServicesModule(builder.Configuration);
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+app.UseExceptionHandler();
+
+if (app.Configuration.GetValue("Database:ApplyMigrationsOnStartup", false))
 {
+    using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<ServicesDbContext>();
     await dbContext.Database.MigrateAsync();
 }

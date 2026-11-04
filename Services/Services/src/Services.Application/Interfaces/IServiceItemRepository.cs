@@ -11,6 +11,11 @@ public interface IServiceItemRepository
 
     Task<List<ServiceItem>> GetActiveByCategoryAsync(ServiceCategory category);
 
+    Task<bool> ExistsByNameInSpecializationAsync(
+        Guid specializationId,
+        string name,
+        Guid? excludeServiceId = null);
+
     Task AddAsync(ServiceItem service);
 
     Task UpdateAsync(ServiceItem service);

@@ -49,7 +49,8 @@ namespace Clinic.Services.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SpecializationId");
+                    b.HasIndex("SpecializationId", "Name")
+                        .IsUnique();
 
                     b.ToTable("Services", (string)null);
                 });
@@ -69,6 +70,9 @@ namespace Clinic.Services.Infrastructure.Data.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Specializations", (string)null);
                 });

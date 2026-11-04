@@ -29,11 +29,17 @@ Services/Services/
 | GET | `/api/specializations/{id}` | детали + услуги |
 | POST | `/api/specializations` | создать (имя + ≥1 услуга) |
 | PUT | `/api/specializations/{id}` | обновить имя/статус |
-| PATCH | `/api/specializations/{id}/status` | смена статуса (Inactive → cascade + event stub) |
+| PATCH | `/api/specializations/{id}/status` | смена статуса (Inactive → cascade + `SpecializationDeactivated`; Active → услуги остаются Inactive и включаются вручную) |
 | POST | `/api/specializations/{id}/services` | добавить услугу |
 | GET | `/api/services/{id}` | детали услуги |
 | PUT | `/api/services/{id}` | обновить услугу |
-| PATCH | `/api/services/{id}/status` | смена статуса услуги |
+| PATCH | `/api/services/{id}/status` | смена статуса услуги (Active нельзя, если специализация Inactive → 409) |
+
+## статусы
+
+- Деактивация специализации каскадно переводит её услуги в `Inactive` и публикует `SpecializationDeactivated`.
+- Активация специализации услуги **не** включает — их нужно активировать по одной.
+- Услугу нельзя создать/активировать как `Active`, пока специализация `Inactive` (409).
 
 ## ран
 

@@ -3,9 +3,9 @@ using Clinic.Services.Application.DTOs.Services;
 using Clinic.Services.Application.DTOs.Specializations;
 using Clinic.Services.Application.Events;
 using Clinic.Services.Application.Interfaces;
+using Clinic.Services.Application.Mappings;
 using Clinic.Services.Domain.Entities;
 using Clinic.Services.Domain.Enums;
-using Clinic.Services.Domain.Interfaces;
 
 namespace Clinic.Services.Application.Services;
 
@@ -49,6 +49,14 @@ public class SpecializationService : ISpecializationService
     public async Task<SpecializationResponseDto> CreateAsync(
         CreateSpecializationRequestDto request)
     {
+        if (await _specializationRepository.ExistsByNameAsync(request.Name))
+        {
+            throw new InvalidOperationException(
+                "Specialization with this name already exists.");
+        }
+
+        EnsureServicesMatchSpecializationStatus(request.Status, request.Services);
+
         var specialization = new Specialization
         {
             Id = Guid.NewGuid(),
@@ -80,6 +88,12 @@ public class SpecializationService : ISpecializationService
         if (specialization is null)
         {
             return null;
+        }
+
+        if (await _specializationRepository.ExistsByNameAsync(request.Name, id))
+        {
+            throw new InvalidOperationException(
+                "Specialization with this name already exists.");
         }
 
         var previousStatus = specialization.Status;
@@ -135,23 +149,22 @@ public class SpecializationService : ISpecializationService
         var analyses = await _serviceItemRepository
             .GetActiveByCategoryAsync(ServiceCategory.Analyses);
 
-        var activeConsultationGroups = consultations
-            .Where(s => s.Specialization is { Status: CatalogStatus.Active })
+        var consultationGroups = consultations
             .GroupBy(s => new { s.SpecializationId, Name = s.Specialization!.Name })
             .Select(g => new ConsultationGroupDto
             {
                 SpecializationId = g.Key.SpecializationId,
                 SpecializationName = g.Key.Name,
-                Services = g.Select(MapService).ToList()
+                Services = g.Select(s => s.ToResponseDto()).ToList()
             })
             .OrderBy(g => g.SpecializationName)
             .ToList();
 
         return new PatientCatalogResponseDto
         {
-            Consultations = activeConsultationGroups,
-            Diagnostics = diagnostics.Select(MapService).ToList(),
-            Analyses = analyses.Select(MapService).ToList()
+            Consultations = consultationGroups,
+            Diagnostics = diagnostics.Select(s => s.ToResponseDto()).ToList(),
+            Analyses = analyses.Select(s => s.ToResponseDto()).ToList()
         };
     }
 
@@ -165,10 +178,21 @@ public class SpecializationService : ISpecializationService
         await _specializationRepository.UpdateAsync(specialization);
 
         await _eventPublisher.PublishAsync(
-            new SpecializationStatusChanged(
+            new SpecializationDeactivated(
                 specialization.Id,
-                specialization.Name,
-                CatalogStatus.Inactive));
+                specialization.Name));
+    }
+
+    private static void EnsureServicesMatchSpecializationStatus(
+        CatalogStatus specializationStatus,
+        IEnumerable<CreateServiceRequestDto> services)
+    {
+        if (specializationStatus != CatalogStatus.Active &&
+            services.Any(s => s.Status == CatalogStatus.Active))
+        {
+            throw new InvalidOperationException(
+                "Cannot create an active service under an inactive specialization.");
+        }
     }
 
     private static SpecializationResponseDto MapSpecialization(Specialization specialization)
@@ -178,20 +202,7 @@ public class SpecializationService : ISpecializationService
             Id = specialization.Id,
             Name = specialization.Name,
             Status = specialization.Status,
-            Services = specialization.Services.Select(MapService).ToList()
-        };
-    }
-
-    private static ServiceResponseDto MapService(ServiceItem service)
-    {
-        return new ServiceResponseDto
-        {
-            Id = service.Id,
-            SpecializationId = service.SpecializationId,
-            Name = service.Name,
-            Price = service.Price,
-            Category = service.Category,
-            Status = service.Status
+            Services = specialization.Services.Select(s => s.ToResponseDto()).ToList()
         };
     }
 }

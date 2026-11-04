@@ -1,4 +1,4 @@
-namespace Clinic.Services.Domain.Interfaces;
+namespace Clinic.Services.Application.Interfaces;
 
 public interface IEventPublisher
 {

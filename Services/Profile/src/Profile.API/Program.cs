@@ -23,8 +23,9 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 
-using (var scope = app.Services.CreateScope())
+if (app.Configuration.GetValue("Database:ApplyMigrationsOnStartup", false))
 {
+    using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<ProfilesDbContext>();
     await dbContext.Database.MigrateAsync();
 }
