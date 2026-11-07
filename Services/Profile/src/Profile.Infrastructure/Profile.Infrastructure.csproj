@@ -9,6 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Profile.Application\Profile.Application.csproj" />
         <ProjectReference Include="..\Profile.Domain\Profile.Domain.csproj" />
     </ItemGroup>
 

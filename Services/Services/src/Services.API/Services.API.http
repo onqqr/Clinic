@@ -1,0 +1,34 @@
+@ServicesApi_HostAddress = http://localhost:5080
+
+### Catalog (patient)
+GET {{ServicesApi_HostAddress}}/api/catalog
+Accept: application/json
+
+###
+GET {{ServicesApi_HostAddress}}/api/specializations
+Accept: application/json
+
+###
+POST {{ServicesApi_HostAddress}}/api/specializations
+Content-Type: application/json
+
+## mock for tetsing
+
+{
+  "name": "Therapy",
+  "status": "Active",
+  "services": [
+    {
+      "name": "Primary consultation",
+      "price": 50.00,
+      "category": "Consultation",
+      "status": "Active"
+    },
+    {
+      "name": "Blood test",
+      "price": 25.00,
+      "category": "Analyses",
+      "status": "Active"
+    }
+  ]
+}

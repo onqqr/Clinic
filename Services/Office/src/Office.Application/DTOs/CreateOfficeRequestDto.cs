@@ -1,3 +1,5 @@
+using Clinic.Offices.Domain.Enums;
+
 namespace Clinic.Offices.Application.DTOs;
 
 public class CreateOfficeRequestDto
@@ -13,4 +15,6 @@ public class CreateOfficeRequestDto
     public string? OfficeNumber { get; set; }
 
     public string RegistryPhoneNumber { get; set; } = string.Empty;
+
+    public OfficeStatus Status { get; set; } = OfficeStatus.Active;
 }

@@ -43,6 +43,7 @@ public class OfficeService : IOfficeService
             HouseNumber = request.HouseNumber,
             OfficeNumber = request.OfficeNumber,
             RegistryPhoneNumber = request.RegistryPhoneNumber,
+            Status = request.Status,
         };
 
         await _officeRepository.AddAsync(office);
